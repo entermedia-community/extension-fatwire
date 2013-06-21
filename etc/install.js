@@ -19,6 +19,8 @@ unziper.unzip(  tmp + "/extension-fatwire.zip",  tmp );
 
 log.add("3. REPLACE LIBS");
 var files = new FileUtils();
+files.deleteMatch (web + "/lib/extension-fatwire*.jar");
+
 files.deleteMatch (web + "/lib/cas-client-core-3.1.9.jar");
 files.deleteMatch (web + "/lib/jersey-client-1.1.4.1.jar");
 files.deleteMatch (web + "/lib/jersey-core-1.1.4.1.jar");
@@ -41,7 +43,7 @@ files.deleteMatch (web + "/lib/wem-sso-api-oam-1.2.2.jar");
 files.deleteMatch (web + "/lib/wem-sso-cas-integration-rest-1.2.jar");
 files.deleteMatch (web + "/lib/xwork-2.0.4.jar");
 
-
+files.copyFileByMatch( tmp + "/lib/extension-fatwaire*.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/cas-client-core-3.1.9.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/jersey-client-1.1.4.1.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/jersey-core-1.1.4.1.jar", web + "/lib/");
