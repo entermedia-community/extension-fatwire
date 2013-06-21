@@ -265,9 +265,9 @@ public class FatwireManager {
 	
 	public AssetBean pushAsset(Asset inAsset, String inSite, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage, String inExportName, String inOutputFile) throws IOException
 	{
-		log.info("\npushAsset ("+(inAsset!=null ? inAsset.getId() : "null")+","+
+		log.info("pushAsset ("+(inAsset!=null ? inAsset.getId() : "null")+","+
 				(inSite)+","+(inType)+","+(inSubtype)+","+(inUser!=null ? inUser.getName() : "null")+","+
-				(inUrlHome)+","+(inUsage)+","+(inExportName)+","+(inOutputFile)+")\n");
+				(inUrlHome)+","+(inUsage)+","+(inExportName)+","+(inOutputFile)+")");
 		
 		//no longer necessary
 //		if(inAsset.get("fatwireid") != null)
@@ -297,14 +297,14 @@ public class FatwireManager {
 		
 		//http://localhost:8080/emshare/views/modules/asset/downloads/preview/thumb/users/admin/2013/05/Power-Macintosh-G4-Cube.jpg/thumb.jpg
 		thumbpath = inUrlHome  + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
-		System.out.println("thumb:\n"+thumbpath);
+//		System.out.println("thumb:\n"+thumbpath);
 		
 		String originalpath = inUrlHome + getMediaArchive().getCatalogHome() + "/downloads/preview/cache/" + inAsset.getSourcePath() + "/preview.jpg";
 		
 		//$home/${applicationid}/views/modules/asset/downloads/generated/${asset.sourcepath}/${convertpreset.outputfile}/${publishqueue.exportname}
 		originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"
 			+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
-		System.out.println("originalpath:\n"+originalpath);
+//		System.out.println("originalpath:\n"+originalpath);
 		
 		String width = inAsset.get("width");
 		String height = inAsset.get("height");
@@ -470,7 +470,7 @@ public class FatwireManager {
 			password = getUserManager().decryptPassword(inUser);
 		}
 		String config = getSSOConfig();
-		log.info("Getting SSO Session ticket ("+config+", "+username+", "+password+")");
+		log.info("Getting SSO Session ticket ("+config+", "+username+")");//, "+password+")");
 		try {
 //			String ticket = SSO.getSSOSession(inConfig).getTicket(inUrl, username, password);
 			String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);//use multiticket instead
