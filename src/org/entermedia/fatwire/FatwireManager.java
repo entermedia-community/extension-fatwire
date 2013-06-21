@@ -296,21 +296,18 @@ public class FatwireManager {
 		String thumbpath = inUrlHome + getMediaArchive().getCatalogHome() + "/downloads/preview/thumb/" + inAsset.getSourcePath() + "/preview.jpg";
 		
 		//http://localhost:8080/emshare/views/modules/asset/downloads/preview/thumb/users/admin/2013/05/Power-Macintosh-G4-Cube.jpg/thumb.jpg
-		thumbpath = inUrlHome + getMediaArchive().getCatalogHome() + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
+		thumbpath = inUrlHome  + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
 		System.out.println("thumb:\n"+thumbpath);
 		
 		String originalpath = inUrlHome + getMediaArchive().getCatalogHome() + "/downloads/preview/cache/" + inAsset.getSourcePath() + "/preview.jpg";
 		
 		//$home/${applicationid}/views/modules/asset/downloads/generated/${asset.sourcepath}/${convertpreset.outputfile}/${publishqueue.exportname}
-		originalpath = inUrlHome + getMediaArchive().getCatalogHome() + "/views/modules/asset/downloads/generated/"
+		originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"
 			+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
 		System.out.println("originalpath:\n"+originalpath);
 		
 		String width = inAsset.get("width");
 		String height = inAsset.get("height");
-		
-		System.out.println(width+","+height);
-		
 		String alttext = inAsset.get("headline");
 		String usagerights = (inUsage == null || inUsage.isEmpty() ? "Free Reuse" : inUsage);
 		String artist = inAsset.get("artist");
@@ -330,8 +327,10 @@ public class FatwireManager {
         		{"source","0"},//0 by default
         		{"thumbnailurl",thumbpath},
         		{"imageurl",originalpath},
-        		{"width","int:"+width},
-        		{"height","int:"+height},
+//        		{"width","int:"+width},
+//        		{"height","int:"+height},
+        		{"width",width},
+        		{"height",height},
         		{"alttext",alttext},
         		{"usagerights",usagerights},//default: Free Reuse
         		{"sendtolexis","0"},//0 default, otherwise y/n
@@ -347,30 +346,30 @@ public class FatwireManager {
         {
         	String name = attributes[i][0];
         	String stringvalue = attributes[i][1];
-        	boolean useInt = false;
+//        	boolean useInt = false;
         	if (stringvalue == null || stringvalue.isEmpty())
         		stringvalue = "0";
-        	else if (stringvalue.startsWith("int:"))
-        	{
-        		String str = stringvalue.substring("int:".length());
-        		try{
-        			stringvalue = String.valueOf(Integer.parseInt(str));
-        			useInt = true;
-        		}
-        		catch (Exception e){}
-        	}
+//        	else if (stringvalue.startsWith("int:"))
+//        	{
+//        		String str = stringvalue.substring("int:".length());
+//        		try{
+//        			stringvalue = String.valueOf(Integer.parseInt(str));
+//        			useInt = true;
+//        		}
+//        		catch (Exception e){}
+//        	}
         	log.info("adding "+name+":"+stringvalue+" to fatwire assetbean");
         	Attribute sourceAssetAttribute = new Attribute();
             Data sourceAssetAttributeData = new Data();
             sourceAssetAttribute.setName(name);
-            if (useInt)
-            {
-            	sourceAssetAttributeData.setIntegerValue(new Integer(Integer.parseInt(stringvalue)));
-            }
-            else 
-            {
+//            if (useInt)
+//            {
+//            	sourceAssetAttributeData.setIntegerValue(new Integer(Integer.parseInt(stringvalue)));
+//            }
+//            else 
+//            {
             	sourceAssetAttributeData.setStringValue(stringvalue);
-            }
+//            }
             sourceAssetAttribute.setData(sourceAssetAttributeData);
             fwasset.getAttributes().add(sourceAssetAttribute);
         }
@@ -452,12 +451,26 @@ public class FatwireManager {
 	
 	public String getTicket()
 	{
-		String username = getUserName();
-		log.info("fatwire username "+username);
-		User user = getUserManager().getUser(username);
-		String password = getUserManager().decryptPassword(user);
+		return getTicket(null);
+	}
+	
+	public String getTicket(User inUser)
+	{
+		String username = null;
+		String password = null;
+		if (inUser == null)
+		{
+			username = getUserName();
+			User user = getUserManager().getUser(username);
+			password = getUserManager().decryptPassword(user);
+		}
+		else
+		{
+			username = inUser.getUserName();
+			password = getUserManager().decryptPassword(inUser);
+		}
 		String config = getSSOConfig();
-//		log.info("Getting SSO Session ticket ("+config+", "+username+", "+password+")");
+		log.info("Getting SSO Session ticket ("+config+", "+username+", "+password+")");
 		try {
 //			String ticket = SSO.getSSOSession(inConfig).getTicket(inUrl, username, password);
 			String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);//use multiticket instead
@@ -468,56 +481,28 @@ public class FatwireManager {
 		return null;
 	}
 	
-	
-	
-	
-	
-	
-	
-	//testing
-	
-	
-	
-	
-	
-	
-	public static void testRead(String ticket)
-	{
-		Client client = Client.create();
-		WebResource webResource = client.resource("http://dev11g.app.www.law.com:8080/cs/REST");
-		webResource = webResource.queryParam("multiticket", ticket);
-		String basicAssetSiteName = "CA";
-        String basicAssetTypeName = "Image_C";
-        String basicAssetId = "1196293542243";//1196293542243
-        webResource = webResource.path("sites").path(basicAssetSiteName).path("types").path(basicAssetTypeName).path("assets").path(basicAssetId);
-        Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
-        builder.header("X-CSRF-Token", ticket);
-        try
-        {
-        	AssetBean resultAsset = builder.get(AssetBean.class);
-        	printAssetBean(resultAsset);
-        }
-        catch (Exception e)
-        {
-        	e.printStackTrace();
-        }
-        
-	}
-	
 	public static void printAssetBean(AssetBean bean)
 	{
 		StringBuilder buf = new StringBuilder();
-		buf.append("id:\t").append(bean.getId()).append("\n");
-		buf.append("name:\t").append(bean.getName()).append("\n");
-		buf.append("createdby:\t").append(bean.getCreatedby()).append("\n");
-		buf.append("description:\t").append(bean.getDescription()).append("\n");
-		buf.append("status:\t").append(bean.getStatus()).append("\n");
-		buf.append("subtype:\t").append(bean.getSubtype()).append("\n");
-		buf.append("updatedby:\t").append(bean.getUpdatedby()).append("\n");
-		buf.append(getAssociationsStr(bean.getAssociations()));
-		buf.append(getAttributesStr(bean.getAttributes()));
-		buf.append(getPublistsStr(bean.getPublists()));
-		System.out.println(buf.toString().trim());
+		if (bean == null)
+		{
+			buf.append("AssetBean is NULL");
+		}
+		else
+		{
+			buf.append("AssetBean output\n");
+			buf.append("\tid:\t").append(bean.getId()).append("\n");
+			buf.append("\tname:\t").append(bean.getName()).append("\n");
+			buf.append("\tcreatedby:\t").append(bean.getCreatedby()).append("\n");
+			buf.append("\tdescription:\t").append(bean.getDescription()).append("\n");
+			buf.append("\tstatus:\t").append(bean.getStatus()).append("\n");
+			buf.append("\tsubtype:\t").append(bean.getSubtype()).append("\n");
+			buf.append("\tupdatedby:\t").append(bean.getUpdatedby()).append("\n");
+			buf.append(getAssociationsStr(bean.getAssociations()));
+			buf.append(getAttributesStr(bean.getAttributes()));
+			buf.append(getPublistsStr(bean.getPublists()));
+		}
+		log.info(buf.toString().trim());
 	}
 	
 	public static String getAssociationsStr(Associations associations)
@@ -526,7 +511,7 @@ public class FatwireManager {
 		Iterator<Association> itr = associations.getAssociations().iterator();
 		while(itr.hasNext())
 		{
-			buf.append("association:\t"+itr.next().getName()).append("\n");
+			buf.append("\tassociation:\t"+itr.next().getName()).append("\n");
 		}
 		return buf.toString();
 	}
@@ -544,7 +529,7 @@ public class FatwireManager {
 			{
 				val = data.getIntegerValue()!=null ? data.getIntegerValue().toString() : "null";
 			}
-			buf.append("attribute:\t"+attr.getName()+"\t"+val).append("\n");
+			buf.append("\tattribute:\t"+attr.getName()+"\t"+val).append("\n");
 		}
 		return buf.toString();
 	}
@@ -555,93 +540,8 @@ public class FatwireManager {
 		Iterator<String> itr = list.iterator();
 		while(itr.hasNext())
 		{
-			buf.append("publist:\t"+itr.next()).append("\n");
+			buf.append("\tpublist:\t"+itr.next()).append("\n");
 		}
 		return buf.toString();
-	}
-	
-	public static void testWrite(String ticket)
-	{
-		Client client = Client.create();
-		WebResource webResource = client.resource("http://dev11g.app.www.law.com:8080/cs/REST");
-		webResource = webResource.queryParam("multiticket", ticket);
-		String basicAssetSiteName = "CA";
-        String basicAssetTypeName = "Image_C";
-        webResource = webResource.path("sites").path(basicAssetSiteName).path("types").path(basicAssetTypeName).path("assets").path("0");
-        Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
-        
-        //Add the CSRF header
-        builder = builder.header("X-CSRF-Token", ticket);
-
-        // Step 7: Instantiate and define the AssetBean for the asset
-        AssetBean sourceAsset = new AssetBean();
-
-        // Name - mandatory field
-        sourceAsset.setName("Test REST PUT");
-
-        // Description - optional field
-        sourceAsset.setDescription("Test REST PUT description");
-        
-        //add subtype
-        sourceAsset.setSubtype("Image");
-        
-        
-        
-        //attribute:source
-        String[][] strs = {
-        		{"source","0"},//?
-        		{"thumbnailurl","http://www.law.com/images/128_pics/banks_lisa.jpg"},
-        		{"imageurl","http://www.law.com/images/128_pics/banks_lisa.jpg"},
-        		{"width","200"},
-        		{"height","200"},
-        		{"alttext","test alt text"},
-        		{"usagerights","Free Reuse"},//? default: Free Reuse
-        		{"sendtolexis","0"}//0 default, otherwise y/n
-        };
-        for (int i=0; i<strs.length;i++)
-        {
-        	String [] str = strs[i];
-        	String key = str[0];
-        	String val = str[1];
-        	Attribute sourceAssetAttribute = new Attribute();
-            Data sourceAssetAttributeData = new Data();
-            sourceAssetAttribute.setName(key);
-            sourceAssetAttributeData.setStringValue(val);
-            sourceAssetAttribute.setData(sourceAssetAttributeData);
-            sourceAsset.getAttributes().add(sourceAssetAttribute);
-        }
-
-        // Required: Must specify the site(s) for the asset
-        sourceAsset.getPublists().add(basicAssetSiteName);
-
-        // Step 8: Invoke the REST request to create the asset
-        try
-        {
-        	AssetBean resultAsset = builder.put(AssetBean.class, sourceAsset);
-        	printAssetBean(resultAsset);
-        }
-        catch (Exception e)
-        {
-        	e.printStackTrace();
-        }
-        
-
-       
-	}
-	
-	public static void main (String args[])
-	{
-		String config = "SSOConfig.xml";
-		String username = "entermedia";
-		String password = "dam";
-		try {
-			String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);
-			System.out.println(ticket);
-			testRead(ticket);
-//			testWrite(ticket);
-		}catch (Exception e)
-		{
-			e.printStackTrace();
-		}
 	}
 }
