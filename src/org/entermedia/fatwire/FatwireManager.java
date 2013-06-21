@@ -327,10 +327,10 @@ public class FatwireManager {
         		{"source","0"},//0 by default
         		{"thumbnailurl",thumbpath},
         		{"imageurl",originalpath},
-//        		{"width","int:"+width},
-//        		{"height","int:"+height},
-        		{"width",width},
-        		{"height",height},
+        		{"width","int:"+width},
+        		{"height","int:"+height},
+//        		{"width",width},
+//        		{"height",height},
         		{"alttext",alttext},
         		{"usagerights",usagerights},//default: Free Reuse
         		{"sendtolexis","0"},//0 default, otherwise y/n
@@ -346,30 +346,30 @@ public class FatwireManager {
         {
         	String name = attributes[i][0];
         	String stringvalue = attributes[i][1];
-//        	boolean useInt = false;
+        	boolean useInt = false;
         	if (stringvalue == null || stringvalue.isEmpty())
         		stringvalue = "0";
-//        	else if (stringvalue.startsWith("int:"))
-//        	{
-//        		String str = stringvalue.substring("int:".length());
-//        		try{
-//        			stringvalue = String.valueOf(Integer.parseInt(str));
-//        			useInt = true;
-//        		}
-//        		catch (Exception e){}
-//        	}
+        	else if (stringvalue.startsWith("int:"))
+        	{
+        		String str = stringvalue.substring("int:".length());
+        		try{
+        			stringvalue = String.valueOf(Integer.parseInt(str));
+        			useInt = true;
+        		}
+        		catch (Exception e){}
+        	}
         	log.info("adding "+name+":"+stringvalue+" to fatwire assetbean");
         	Attribute sourceAssetAttribute = new Attribute();
             Data sourceAssetAttributeData = new Data();
             sourceAssetAttribute.setName(name);
-//            if (useInt)
-//            {
-//            	sourceAssetAttributeData.setIntegerValue(new Integer(Integer.parseInt(stringvalue)));
-//            }
-//            else 
-//            {
+            if (useInt)
+            {
+            	sourceAssetAttributeData.setIntegerValue(new Integer(Integer.parseInt(stringvalue)));
+            }
+            else 
+            {
             	sourceAssetAttributeData.setStringValue(stringvalue);
-//            }
+            }
             sourceAssetAttribute.setData(sourceAssetAttributeData);
             fwasset.getAttributes().add(sourceAssetAttribute);
         }
