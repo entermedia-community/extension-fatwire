@@ -293,18 +293,11 @@ public class FatwireManager {
 		//required fields: source, thumbnailurl, imageurl, width, height, alttext, usagerights,sendtolexis
 		//other fields: keywords, artist, caption, shootdate, startdate, endate
 		
-		String thumbpath = inUrlHome + getMediaArchive().getCatalogHome() + "/downloads/preview/thumb/" + inAsset.getSourcePath() + "/preview.jpg";
+//		String thumbpath = inUrlHome  + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
+		String thumbpath = "/image/EM/thumb_"+inExportName;
 		
-		//http://localhost:8080/emshare/views/modules/asset/downloads/preview/thumb/users/admin/2013/05/Power-Macintosh-G4-Cube.jpg/thumb.jpg
-		thumbpath = inUrlHome  + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
-//		System.out.println("thumb:\n"+thumbpath);
-		
-		String originalpath = inUrlHome + getMediaArchive().getCatalogHome() + "/downloads/preview/cache/" + inAsset.getSourcePath() + "/preview.jpg";
-		
-		//$home/${applicationid}/views/modules/asset/downloads/generated/${asset.sourcepath}/${convertpreset.outputfile}/${publishqueue.exportname}
-		originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"
-			+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
-//		System.out.println("originalpath:\n"+originalpath);
+//		String originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
+		String originalpath = "/image/EM/"+inExportName;
 		
 		String width = inAsset.get("width");
 		String height = inAsset.get("height");
@@ -327,28 +320,26 @@ public class FatwireManager {
         		{"source","0"},//0 by default
         		{"thumbnailurl",thumbpath},
         		{"imageurl",originalpath},
-        		{"width","int:"+width},
-        		{"height","int:"+height},
-//        		{"width",width},
-//        		{"height",height},
+        		{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
+        		{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
         		{"alttext",alttext},
         		{"usagerights",usagerights},//default: Free Reuse
-        		{"sendtolexis","0"},//0 default, otherwise y/n
+        		{"sendtolexis","n"},//n default (y/n)
         		{"keywords",keywordlist},
         		{"artist",artist}
 //        		{"caption","0"},
 //        		{"shootdate","0"},
 //        		{"startdate","0"},
 //        		{"endate","0"}
-        		
         };
         for (int i=0; i<attributes.length;i++)
         {
         	String name = attributes[i][0];
         	String stringvalue = attributes[i][1];
         	boolean useInt = false;
-        	if (stringvalue == null || stringvalue.isEmpty())
+        	if (stringvalue == null || stringvalue.isEmpty()){
         		stringvalue = "0";
+        	}	
         	else if (stringvalue.startsWith("int:"))
         	{
         		String str = stringvalue.substring("int:".length());
@@ -377,7 +368,6 @@ public class FatwireManager {
 		String multiticket = getTicket();
 		log.info("generated ticket from sso: "+multiticket);
 		String urlbase = getUrlBase();
-		log.info("urlbase: "+urlbase);
 		
 		Client client = Client.create();
 		WebResource webResource = client.resource(urlbase);
