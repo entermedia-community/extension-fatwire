@@ -7,17 +7,9 @@
 	<classpathentry kind="lib" path="lib/jersey-client-1.1.4.1.jar"/>
 	<classpathentry kind="lib" path="lib/jersey-core-1.1.4.1.jar"/>
 	<classpathentry kind="lib" path="lib/jersey-json-1.1.4.1.jar"/>
-	<classpathentry kind="lib" path="lib/jersey-server-1.1.4.1.jar"/>
 	<classpathentry kind="lib" path="lib/jsr311-api-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/rest-api-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/rest-api-local-impl-1.2.2.jar"/>
-	<classpathentry kind="lib" path="lib/spring-aop-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-beans-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-context-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-context-support-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-core-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-web-2.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/spring-webmvc-2.5.6.jar"/>
 	<classpathentry kind="lib" path="lib/wem-sso-api-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/wem-sso-api-cas-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/wem-sso-api-cas-plugin-cs-1.2.2.jar"/>
