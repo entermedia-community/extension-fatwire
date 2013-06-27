@@ -11,6 +11,11 @@
    -->
    <bean id="ssoconfig" class="com.fatwire.wem.sso.cas.conf.CASConfig">
    <!-- http://dev11g.app.www.law.com:8080/cs returns ERROR when running multiticket but http://dev11g.app.www.law.com:8080/cas connects properly -->
+   	 <!-- development cas server   -->
+     <!--
      <property name="casUrl" value="http://dev11g.app.www.law.com:8080/cas" />
+     -->
+     <!-- production cas server -->
+     <property name="casUrl" value="http://stage11g.app.www.law.com:8080/cas" />
    </bean>
 </beans>
