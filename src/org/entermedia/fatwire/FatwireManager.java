@@ -1,5 +1,6 @@
 package org.entermedia.fatwire;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -47,6 +48,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
 public class FatwireManager {
 	private static final Log log = LogFactory.getLog(FatwireManager.class);
 	protected Client fieldClient;
+	//@todo - change to production or development settings
 	protected String fieldSSOConfig = "SSOConfig.xml";
 	protected MediaArchive fieldMediaArchive;
 	protected XmlArchive fieldXmlArchive;
@@ -253,21 +255,21 @@ public class FatwireManager {
         inFwAsset.getAttributes().add(catattr);
 	}
 	
-	public AssetBean pushAsset(Asset inAsset, User inUser, String inUrlHome, String inUsage, String exportName, String outputFile) throws IOException
+	public AssetBean pushAsset(Asset inAsset, User inUser, String inUrlHome, String inUsage, String exportName, String outputFile, Dimension inDimension) throws IOException
 	{
-		return pushAsset(inAsset, "CA", "Image_C", "Image", inUser, inUrlHome, inUsage, exportName, outputFile);
+		return pushAsset(inAsset, "CA", "Image_C", "Image", inUser, inUrlHome, inUsage, exportName, outputFile, inDimension);
 	}
 	
 	public AssetBean pushAsset(Asset inAsset, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage) throws IOException
 	{
-		return pushAsset(inAsset, getSite(), inType, inSubtype, inUser, inUrlHome, inUsage, null, null);
+		return pushAsset(inAsset, getSite(), inType, inSubtype, inUser, inUrlHome, inUsage, null, null, null);
 	}
 	
-	public AssetBean pushAsset(Asset inAsset, String inSite, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage, String inExportName, String inOutputFile) throws IOException
+	public AssetBean pushAsset(Asset inAsset, String inSite, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage, String inExportName, String inOutputFile, Dimension inDimension) throws IOException
 	{
 		log.info("pushAsset ("+(inAsset!=null ? inAsset.getId() : "null")+","+
 				(inSite)+","+(inType)+","+(inSubtype)+","+(inUser!=null ? inUser.getName() : "null")+","+
-				(inUrlHome)+","+(inUsage)+","+(inExportName)+","+(inOutputFile)+")");
+				(inUrlHome)+","+(inUsage)+","+(inExportName)+","+(inOutputFile)+"),("+inDimension+")");
 		
 		//no longer necessary
 //		if(inAsset.get("fatwireid") != null)
@@ -283,8 +285,13 @@ public class FatwireManager {
 		//id is overwritten when we publish to fatwire
 //		fwasset.setId("entermedia:" + inAsset.getId());
 		if (inExportName!=null && !inExportName.isEmpty())
+		{
 			fwasset.setName(inExportName);
-		else fwasset.setName(inAsset.getName());
+		}
+		else 
+		{
+			fwasset.setName(inAsset.getName());
+		}
 		
 		fwasset.setDescription(inAsset.get("assettitle"));
 		fwasset.setSubtype(inSubtype);
@@ -299,8 +306,10 @@ public class FatwireManager {
 //		String originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
 		String originalpath = "/image/EM/"+inExportName;
 		
-		String width = inAsset.get("width");
-		String height = inAsset.get("height");
+		
+		String width = inDimension!=null ? String.valueOf((int) inDimension.getWidth()) : inAsset.get("width");
+		String height = inDimension!=null ? String.valueOf( (int) inDimension.getHeight()) : inAsset.get("height");
+		
 		String alttext = inAsset.get("headline");
 		String usagerights = (inUsage == null || inUsage.isEmpty() ? "Free Reuse" : inUsage);
 		String artist = inAsset.get("artist");
@@ -490,7 +499,7 @@ public class FatwireManager {
 			buf.append("\tupdatedby:\t").append(bean.getUpdatedby()).append("\n");
 			buf.append(getAssociationsStr(bean.getAssociations()));
 			buf.append(getAttributesStr(bean.getAttributes()));
-			buf.append(getPublistsStr(bean.getPublists()));
+			buf.append(getPublistsStr(bean.getPublists()));//publist is equivalent to region
 		}
 		log.info(buf.toString().trim());
 	}
