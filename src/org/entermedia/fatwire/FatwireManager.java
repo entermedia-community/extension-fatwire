@@ -1,11 +1,9 @@
 package org.entermedia.fatwire;
 
 import java.awt.Dimension;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,14 +11,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dom4j.Element;
 import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
 import org.openedit.entermedia.Asset;
 import org.openedit.entermedia.MediaArchive;
 import org.openedit.xml.XmlArchive;
-import org.openedit.xml.XmlFile;
-
 import com.fatwire.rest.beans.AssetBean;
 import com.fatwire.rest.beans.AssetInfo;
 import com.fatwire.rest.beans.AssetsBean;
@@ -28,12 +23,10 @@ import com.fatwire.rest.beans.Association;
 import com.fatwire.rest.beans.Associations;
 import com.fatwire.rest.beans.Attribute;
 import com.fatwire.rest.beans.Attribute.Data;
-import com.fatwire.rest.beans.Blob;
 import com.fatwire.rest.beans.Site;
 import com.fatwire.rest.beans.SitesBean;
 import com.fatwire.wem.sso.SSO;
 import com.fatwire.wem.sso.SSOException;
-import com.fatwire.wem.sso.SSOSession;
 import com.openedit.hittracker.HitTracker;
 import com.openedit.hittracker.SearchQuery;
 import com.openedit.page.manage.PageManager;
@@ -48,7 +41,6 @@ import com.sun.jersey.api.client.WebResource.Builder;
 public class FatwireManager {
 	private static final Log log = LogFactory.getLog(FatwireManager.class);
 	protected Client fieldClient;
-	//@todo - change to production or development settings
 	protected String fieldSSOConfig = "SSOConfig.xml";
 	protected MediaArchive fieldMediaArchive;
 	protected XmlArchive fieldXmlArchive;
@@ -153,7 +145,6 @@ public class FatwireManager {
 		}
 		WebResource wr = client.resource(url);
 		String ticket = getTicket();
-		//@todo change to multiticket
 		wr = wr.queryParam("ticket", ticket);
 		Builder builder = wr.header("Pragma", "auth-redirect=false");
 		AssetsBean fwassets = builder.get(AssetsBean.class);
@@ -271,19 +262,8 @@ public class FatwireManager {
 				(inSite)+","+(inType)+","+(inSubtype)+","+(inUser!=null ? inUser.getName() : "null")+","+
 				(inUrlHome)+","+(inUsage)+","+(inExportName)+","+(inOutputFile)+"),("+inDimension+")");
 		
-		//no longer necessary
-//		if(inAsset.get("fatwireid") != null)
-//		{
-//			//don't send the asset to fatwire again, maybe in future we can can sync fields
-//			log.info("Not exporting asset, already exists on Fatwire");
-//			return null;
-//		}
-		
 		//convert our asset in to an asset bean
 		AssetBean fwasset = new AssetBean();
-		
-		//id is overwritten when we publish to fatwire
-//		fwasset.setId("entermedia:" + inAsset.getId());
 		if (inExportName!=null && !inExportName.isEmpty())
 		{
 			fwasset.setName(inExportName);
@@ -292,20 +272,14 @@ public class FatwireManager {
 		{
 			fwasset.setName(inAsset.getName());
 		}
-		
 		fwasset.setDescription(inAsset.get("assettitle"));
 		fwasset.setSubtype(inSubtype);
 		fwasset.getPublists().add(inSite);
 		
 		//required fields: source, thumbnailurl, imageurl, width, height, alttext, usagerights,sendtolexis
 		//other fields: keywords, artist, caption, shootdate, startdate, endate
-		
-//		String thumbpath = inUrlHome  + "/views/modules/asset/downloads/preview/thumb/" + inAsset.getSourcePath() + "/thumb.jpg";
 		String thumbpath = "/image/EM/thumb_"+inExportName;
-		
-//		String originalpath = inUrlHome + "/views/modules/asset/downloads/generated/"+inAsset.getSourcePath() +"/"+inOutputFile+"/"+inExportName;
 		String originalpath = "/image/EM/"+inExportName;
-		
 		
 		String width = inDimension!=null ? String.valueOf((int) inDimension.getWidth()) : inAsset.get("width");
 		String height = inDimension!=null ? String.valueOf( (int) inDimension.getHeight()) : inAsset.get("height");
@@ -326,20 +300,16 @@ public class FatwireManager {
 		
 		//list of attribute name:value pairs
         String[][] attributes = {
-        		{"source","0"},//0 by default
-        		{"thumbnailurl",thumbpath},
-        		{"imageurl",originalpath},
-        		{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
-        		{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
-        		{"alttext",alttext},
-        		{"usagerights",usagerights},//default: Free Reuse
-        		{"sendtolexis","n"},//n default (y/n)
-        		{"keywords",keywordlist},
-        		{"artist",artist}
-//        		{"caption","0"},
-//        		{"shootdate","0"},
-//        		{"startdate","0"},
-//        		{"endate","0"}
+			{"source","0"},//0 by default
+			{"thumbnailurl",thumbpath},
+			{"imageurl",originalpath},
+			{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
+			{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
+			{"alttext",alttext},
+			{"usagerights",usagerights},//default: Free Reuse
+			{"sendtolexis","n"},//n default (y/n)
+			{"keywords",keywordlist},
+			{"artist",artist}
         };
         for (int i=0; i<attributes.length;i++)
         {
@@ -402,13 +372,6 @@ public class FatwireManager {
 			}
 			throw new IOException(errorMessage,e);
 		}
-		
-		//no longer works - asset can be published as different presets
-//		inAsset.setProperty("fatwireid", ab.getId());
-//		inAsset.setProperty("fatwireexportedby", inUser.getUserName());
-//		inAsset.setProperty("fatwireexportdate", new Date().toString());
-//		getMediaArchive().saveAsset(inAsset, inUser);
-		
 		return ab;
 	}
 	
@@ -421,7 +384,6 @@ public class FatwireManager {
 		WebResource wr = client.resource(url);
 		//we need to set the ticket for authentication
 		String ticket = getTicket();//url, getSSOConfig());
-		//@todo change to multiticket
 		wr = wr.queryParam("ticket", ticket);
 		//make sure we don't redirect
 		Builder builder = wr.header("Pragma", "auth-redirect=false");
@@ -469,10 +431,9 @@ public class FatwireManager {
 			password = getUserManager().decryptPassword(inUser);
 		}
 		String config = getSSOConfig();
-		log.info("Getting SSO Session ticket ("+config+", "+username+")");//, "+password+")");
+		log.info("Getting SSO Session ticket ("+config+", "+username+")");
 		try {
-//			String ticket = SSO.getSSOSession(inConfig).getTicket(inUrl, username, password);
-			String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);//use multiticket instead
+			String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);
 			return ticket;
 		} catch (SSOException e) {
 			log.error("unable to generate SSO Session Ticket, "+e.getMessage(),e);
@@ -499,7 +460,7 @@ public class FatwireManager {
 			buf.append("\tupdatedby:\t").append(bean.getUpdatedby()).append("\n");
 			buf.append(getAssociationsStr(bean.getAssociations()));
 			buf.append(getAttributesStr(bean.getAttributes()));
-			buf.append(getPublistsStr(bean.getPublists()));//publist is equivalent to region
+			buf.append(getPublistsStr(bean.getPublists()));
 		}
 		log.info(buf.toString().trim());
 	}
