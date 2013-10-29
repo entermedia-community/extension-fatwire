@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openedit.data.PropertyDetail;
 import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
 import org.openedit.entermedia.Asset;
@@ -343,7 +344,23 @@ public class FatwireManager {
             sourceAssetAttribute.setData(sourceAssetAttributeData);
             fwasset.getAttributes().add(sourceAssetAttribute);
         }
-		
+        //add additional ones
+        List<?> details = getMediaArchive().getAssetSearcher().getDetailsForView("asset/fatwirefields", (User) null);
+        if (details.size() > 0) {
+			for (Iterator iterator = details.iterator(); iterator.hasNext();) {
+				PropertyDetail detail = (PropertyDetail) iterator.next();
+				String name = detail.get("fatwirefield");
+				String stringvalue = inAsset.get(detail.getId());
+				log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
+				Attribute sourceAssetAttribute = new Attribute();
+				Data sourceAssetAttributeData = new Data();
+				sourceAssetAttribute.setName(name);
+				sourceAssetAttributeData.setStringValue(stringvalue);
+				sourceAssetAttribute.setData(sourceAssetAttributeData);
+				fwasset.getAttributes().add(sourceAssetAttribute);
+			}
+        }
+        
 		String multiticket = getTicket();
 		log.info("generated ticket from sso: "+multiticket);
 		String urlbase = getUrlBase();
