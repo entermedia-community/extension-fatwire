@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.openedit.data.SearcherManager;
 import org.openedit.entermedia.Asset;
 import org.openedit.entermedia.MediaArchive;
 import org.openedit.xml.XmlArchive;
+
 import com.fatwire.rest.beans.AssetBean;
 import com.fatwire.rest.beans.AssetInfo;
 import com.fatwire.rest.beans.AssetsBean;
@@ -345,19 +347,21 @@ public class FatwireManager {
             fwasset.getAttributes().add(sourceAssetAttribute);
         }
         //add additional ones
-        List<?> details = getMediaArchive().getAssetSearcher().getDetailsForView("asset/fatwirefields", (User) null);
+        Collection details = getMediaArchive().getAssetSearcher().getPropertyDetails();
         if (details.size() > 0) {
 			for (Iterator iterator = details.iterator(); iterator.hasNext();) {
 				PropertyDetail detail = (PropertyDetail) iterator.next();
 				String name = detail.get("fatwirefield");
-				String stringvalue = inAsset.get(detail.getId());
-				log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
-				Attribute sourceAssetAttribute = new Attribute();
-				Data sourceAssetAttributeData = new Data();
-				sourceAssetAttribute.setName(name);
-				sourceAssetAttributeData.setStringValue(stringvalue);
-				sourceAssetAttribute.setData(sourceAssetAttributeData);
-				fwasset.getAttributes().add(sourceAssetAttribute);
+				if(name != null){
+					String stringvalue = inAsset.get(detail.getId());
+					log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
+					Attribute sourceAssetAttribute = new Attribute();
+					Data sourceAssetAttributeData = new Data();
+					sourceAssetAttribute.setName(name);
+					sourceAssetAttributeData.setStringValue(stringvalue);
+					sourceAssetAttribute.setData(sourceAssetAttributeData);
+					fwasset.getAttributes().add(sourceAssetAttribute);
+				}
 			}
         }
         
