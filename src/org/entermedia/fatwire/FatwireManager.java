@@ -288,7 +288,7 @@ public class FatwireManager {
 		String height = inDimension!=null ? String.valueOf( (int) inDimension.getHeight()) : inAsset.get("height");
 		
 		String alttext = inAsset.get("headline");
-		String usagerights = (inUsage == null || inUsage.isEmpty() ? "Free Reuse" : inUsage);
+		String usagerights = (inUsage == null || inUsage.isEmpty() ? "0" : inUsage);
 		String artist = inAsset.get("artist");
 		StringBuilder buf = new StringBuilder();
 		List<String> keywords = inAsset.getKeywords();
@@ -300,7 +300,6 @@ public class FatwireManager {
 		{
 			keywordlist = buf.toString().substring(0, buf.toString().length()-1);
 		}
-		
 		//list of attribute name:value pairs
         String[][] attributes = {
 			{"source","0"},//0 by default
@@ -309,8 +308,6 @@ public class FatwireManager {
 			{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
 			{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
 			{"alttext",alttext},
-			{"usagerights",usagerights},//default: Free Reuse
-			{"sendtolexis","y"},//y default (y/n)
 			{"keywords",keywordlist},
 			{"artist",artist}
         };
@@ -346,7 +343,7 @@ public class FatwireManager {
             sourceAssetAttribute.setData(sourceAssetAttributeData);
             fwasset.getAttributes().add(sourceAssetAttribute);
         }
-        //add additional ones
+        //check for additional fields
         Collection details = getMediaArchive().getAssetSearcher().getPropertyDetails();
         if (details.size() > 0) {
 			for (Iterator iterator = details.iterator(); iterator.hasNext();) {
@@ -354,6 +351,11 @@ public class FatwireManager {
 				String name = detail.get("fatwirefield");
 				if(name != null){
 					String stringvalue = inAsset.get(detail.getId());
+					if (name.equals("sendtolexis") && (stringvalue==null || stringvalue.isEmpty()) ){
+						stringvalue = "y";//y or n
+					} else if (name.equals("usagerights") && (stringvalue==null || stringvalue.isEmpty()) ){
+						stringvalue = usagerights;
+					}
 					log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
 					Attribute sourceAssetAttribute = new Attribute();
 					Data sourceAssetAttributeData = new Data();
@@ -364,6 +366,7 @@ public class FatwireManager {
 				}
 			}
         }
+        
         
 		String multiticket = getTicket();
 		log.info("generated ticket from sso: "+multiticket);
