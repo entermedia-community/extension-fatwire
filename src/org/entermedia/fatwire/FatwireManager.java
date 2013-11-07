@@ -357,12 +357,30 @@ public class FatwireManager {
 						stringvalue = usagerights;
 					}
 					log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
-					Attribute sourceAssetAttribute = new Attribute();
-					Data sourceAssetAttributeData = new Data();
-					sourceAssetAttribute.setName(name);
-					sourceAssetAttributeData.setStringValue(stringvalue);
-					sourceAssetAttribute.setData(sourceAssetAttributeData);
-					fwasset.getAttributes().add(sourceAssetAttribute);
+					
+					String[] fatwirefields = name.split(",");
+					for (int i = 0; i < fatwirefields.length; i++) {
+						String fatwirefield = fatwirefields[i];
+						Attribute sourceAssetAttribute = new Attribute();
+						Data sourceAssetAttributeData = new Data();
+						sourceAssetAttribute.setName(fatwirefield);
+						if(detail.isList()){
+							org.openedit.data.BaseData remote = (org.openedit.data.BaseData) getMediaArchive().getData(detail.getListId(), stringvalue);
+							if(remote.get("fatwirevalue ") != null){
+								sourceAssetAttributeData.setStringValue(stringvalue);
+
+							} else{
+								sourceAssetAttributeData.setStringValue(remote.getName());
+
+							}
+						} else{
+						sourceAssetAttributeData.setStringValue(stringvalue);
+						}
+						
+						sourceAssetAttribute.setData(sourceAssetAttributeData);
+						fwasset.getAttributes().add(sourceAssetAttribute);
+					}
+					
 				}
 			}
         }
