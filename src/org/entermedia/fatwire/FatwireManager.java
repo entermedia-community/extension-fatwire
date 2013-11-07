@@ -310,7 +310,7 @@ public class FatwireManager {
 			{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
 			{"alttext",alttext},
 			{"usagerights",usagerights},//default: Free Reuse
-			{"sendtolexis","n"},//n default (y/n)
+			{"sendtolexis","y"},//y default (y/n)
 			{"keywords",keywordlist},
 			{"artist",artist}
         };
