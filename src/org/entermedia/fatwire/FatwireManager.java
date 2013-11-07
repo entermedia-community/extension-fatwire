@@ -354,13 +354,13 @@ public class FatwireManager {
 				String name = detail.get("fatwirefield");
 				if(name != null){
 					String stringvalue = inAsset.get(detail.getId());
-					if (name.equals("sendtolexis") && (stringvalue==null || stringvalue.isEmpty()) ){
-						stringvalue = "y";//y or n
-					} else if (name.equals("usagerights") && (stringvalue==null || stringvalue.isEmpty()) ){
-						stringvalue = usagerights;
-					}
-					log.info("adding " + name + ":" + stringvalue+ " to fatwire assetbean");
-					
+					//these should be left out
+					//they're required by fatwire so it should give an error if they're incorrect
+//					if (name.equals("sendtolexis") && (stringvalue==null || stringvalue.isEmpty()) ){
+//						stringvalue = "y";//y or n
+//					} else if (name.equals("usagerights") && (stringvalue==null || stringvalue.isEmpty()) ){
+//						stringvalue = usagerights;
+//					}
 					String[] fatwirefields = name.split(",");
 					for (int i = 0; i < fatwirefields.length; i++) {
 						String fatwirefield = fatwirefields[i].trim();
@@ -371,35 +371,47 @@ public class FatwireManager {
 						Data sourceAssetAttributeData = new Data();
 						sourceAssetAttribute.setName(fatwirefield);
 						if(detail.isList()){
-							System.out.println("&&& searching "+detail.getListId()+", "+stringvalue);
-							
 							SearcherManager sm = getMediaArchive().getSearcherManager();
 							Searcher searcher = sm.getSearcher(getMediaArchive().getCatalogId(), detail.getListId());
 							org.openedit.Data remote = (org.openedit.Data) searcher.searchById(stringvalue);
-//							org.openedit.data.BaseData remote = (org.openedit.data.BaseData)  getMediaArchive().getSearcherManager().getData( getMediaArchive().getCatalogId(), detail.getListId(), stringvalue);
 							if (remote == null){
-								sourceAssetAttributeData.setStringValue(stringvalue);
+								remote = (org.openedit.Data) searcher.searchByField("default", "true");
+								if (remote == null){
+									sourceAssetAttributeData.setStringValue(stringvalue);
+									log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean");
+								} else {
+									if(remote.get("fatwirevalue") != null && !remote.get("fatwirevalue").isEmpty()){
+										sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
+										log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " (default value) to fatwire assetbean");
+									} else{
+										sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
+										log.info("adding " + fatwirefield + ":" + remote.getName()+ " to fatwire assetbean");
+									}
+								}
 							} else if(remote.get("fatwirevalue") != null && !remote.get("fatwirevalue").isEmpty()){
 								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
+								log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " to fatwire assetbean");
 							} else{
 								sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
+								log.info("adding " + fatwirefield + ":" + remote.getName()+ " to fatwire assetbean");
 							}
-						} if (detail.isDate()) {
+						} else if (detail.isDate()) {
 							Date date = DateStorageUtil.getStorageUtil().parseFromStorage(stringvalue);
-							sourceAssetAttributeData.setDateValue(date);////"yyyy-mm-dd hh:mm:ss"
+							sourceAssetAttributeData.setDateValue(date);
+							log.info("adding " + fatwirefield + ":" + date+ " to fatwire assetbean");
 						} else {
 							sourceAssetAttributeData.setStringValue(stringvalue);
+							log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean");
 						}
 						sourceAssetAttribute.setData(sourceAssetAttributeData);
 						fwasset.getAttributes().add(sourceAssetAttribute);
 					}
-					
 				}
 			}
         }
         
         //debug
-        printAssetBean(fwasset);
+//        printAssetBean(fwasset);
         
         
 		String multiticket = getTicket();
