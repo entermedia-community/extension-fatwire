@@ -3,8 +3,10 @@ package org.entermedia.fatwire;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +19,7 @@ import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
 import org.openedit.entermedia.Asset;
 import org.openedit.entermedia.MediaArchive;
+import org.openedit.util.DateStorageUtil;
 import org.openedit.xml.XmlArchive;
 
 import com.fatwire.rest.beans.AssetBean;
@@ -366,17 +369,17 @@ public class FatwireManager {
 						sourceAssetAttribute.setName(fatwirefield);
 						if(detail.isList()){
 							org.openedit.data.BaseData remote = (org.openedit.data.BaseData) getMediaArchive().getData(detail.getListId(), stringvalue);
-							if(remote.get("fatwirevalue ") != null){
-								sourceAssetAttributeData.setStringValue(stringvalue);
-
+							if(remote.get("fatwirevalue") != null){
+								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
 							} else{
 								sourceAssetAttributeData.setStringValue(remote.getName());
-
 							}
-						} else{
-						sourceAssetAttributeData.setStringValue(stringvalue);
+						} if (detail.isDate()) {
+							Date date = DateStorageUtil.getStorageUtil().parseFromStorage(stringvalue);
+							sourceAssetAttributeData.setDateValue(date);////"yyyy-mm-dd hh:mm:ss"
+						} else {
+							sourceAssetAttributeData.setStringValue(stringvalue);
 						}
-						
 						sourceAssetAttribute.setData(sourceAssetAttributeData);
 						fwasset.getAttributes().add(sourceAssetAttribute);
 					}
@@ -384,6 +387,9 @@ public class FatwireManager {
 				}
 			}
         }
+        
+        //debug
+        printAssetBean(fwasset);
         
         
 		String multiticket = getTicket();
@@ -492,7 +498,7 @@ public class FatwireManager {
 		}
 		else
 		{
-			buf.append("AssetBean output\n");
+			buf.append("AssetBean data\n");
 			buf.append("\tid:\t").append(bean.getId()).append("\n");
 			buf.append("\tname:\t").append(bean.getName()).append("\n");
 			buf.append("\tcreatedby:\t").append(bean.getCreatedby()).append("\n");
@@ -530,6 +536,10 @@ public class FatwireManager {
 			if (val == null || val.equals("null"))
 			{
 				val = data.getIntegerValue()!=null ? data.getIntegerValue().toString() : "null";
+			}
+			if (val == null || val.equals("null"))
+			{
+				val = data.getDateValue()!=null ? data.getDateValue().toString() : "null";
 			}
 			buf.append("\tattribute:\t"+attr.getName()+"\t"+val).append("\n");
 		}
