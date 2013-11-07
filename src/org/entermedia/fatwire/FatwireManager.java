@@ -363,12 +363,18 @@ public class FatwireManager {
 					
 					String[] fatwirefields = name.split(",");
 					for (int i = 0; i < fatwirefields.length; i++) {
-						String fatwirefield = fatwirefields[i];
+						String fatwirefield = fatwirefields[i].trim();
+						if (fatwirefield.isEmpty()){
+							continue;
+						}
 						Attribute sourceAssetAttribute = new Attribute();
 						Data sourceAssetAttributeData = new Data();
 						sourceAssetAttribute.setName(fatwirefield);
 						if(detail.isList()){
-							org.openedit.data.BaseData remote = (org.openedit.data.BaseData) getMediaArchive().getData(detail.getListId(), stringvalue);
+							System.out.println("&&& searching "+detail.getListId()+", "+stringvalue);
+							
+							org.openedit.data.BaseData remote = (org.openedit.data.BaseData)  getMediaArchive().getSearcherManager().getData( getMediaArchive().getCatalogId(), detail.getListId(), stringvalue);
+							
 							if(remote.get("fatwirevalue") != null){
 								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
 							} else{
