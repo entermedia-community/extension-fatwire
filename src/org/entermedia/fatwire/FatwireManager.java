@@ -375,7 +375,7 @@ public class FatwireManager {
 							
 							SearcherManager sm = getMediaArchive().getSearcherManager();
 							Searcher searcher = sm.getSearcher(getMediaArchive().getCatalogId(), detail.getListId());
-							org.openedit.data.BaseData remote = (org.openedit.data.BaseData) searcher.searchById(stringvalue);
+							org.openedit.Data remote = (org.openedit.Data) searcher.searchById(stringvalue);
 //							org.openedit.data.BaseData remote = (org.openedit.data.BaseData)  getMediaArchive().getSearcherManager().getData( getMediaArchive().getCatalogId(), detail.getListId(), stringvalue);
 							if (remote == null){
 								sourceAssetAttributeData.setStringValue(stringvalue);
@@ -526,7 +526,7 @@ public class FatwireManager {
 	public static String getAssociationsStr(Associations associations)
 	{
 		StringBuilder buf = new StringBuilder();
-		if (associations.getAssociations()==null){
+		if (associations==null || associations.getAssociations()==null){
 			buf.append("\tassociation:\t[]\n");
 		} else {
 			Iterator<Association> itr = associations.getAssociations().iterator();
