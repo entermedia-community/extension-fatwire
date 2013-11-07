@@ -526,10 +526,14 @@ public class FatwireManager {
 	public static String getAssociationsStr(Associations associations)
 	{
 		StringBuilder buf = new StringBuilder();
-		Iterator<Association> itr = associations.getAssociations().iterator();
-		while(itr.hasNext())
-		{
-			buf.append("\tassociation:\t"+itr.next().getName()).append("\n");
+		if (associations.getAssociations()==null){
+			buf.append("\tassociation:\t[]\n");
+		} else {
+			Iterator<Association> itr = associations.getAssociations().iterator();
+			while(itr.hasNext())
+			{
+				buf.append("\tassociation:\t"+itr.next().getName()).append("\n");
+			}
 		}
 		return buf.toString();
 	}
@@ -537,8 +541,8 @@ public class FatwireManager {
 	public static String getAttributesStr(List<Attribute> list)
 	{
 		StringBuilder buf = new StringBuilder();
-		Iterator<Attribute> itr = list.iterator();
-		while(itr.hasNext())
+		Iterator<Attribute> itr = list!=null ? list.iterator() : null;
+		while(itr!=null && itr.hasNext())
 		{
 			Attribute attr = itr.next();
 			Data data = attr.getData();
@@ -559,8 +563,8 @@ public class FatwireManager {
 	public static String getPublistsStr(List<String> list)
 	{
 		StringBuilder buf = new StringBuilder();
-		Iterator<String> itr = list.iterator();
-		while(itr.hasNext())
+		Iterator<String> itr = list !=null ? list.iterator() : null;
+		while(itr !=null && itr.hasNext())
 		{
 			buf.append("\tpublist:\t"+itr.next()).append("\n");
 		}
