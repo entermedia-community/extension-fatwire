@@ -373,12 +373,16 @@ public class FatwireManager {
 						if(detail.isList()){
 							System.out.println("&&& searching "+detail.getListId()+", "+stringvalue);
 							
-							org.openedit.data.BaseData remote = (org.openedit.data.BaseData)  getMediaArchive().getSearcherManager().getData( getMediaArchive().getCatalogId(), detail.getListId(), stringvalue);
-							
-							if(remote.get("fatwirevalue") != null){
+							SearcherManager sm = getMediaArchive().getSearcherManager();
+							Searcher searcher = sm.getSearcher(getMediaArchive().getCatalogId(), detail.getListId());
+							org.openedit.data.BaseData remote = (org.openedit.data.BaseData) searcher.searchById(stringvalue);
+//							org.openedit.data.BaseData remote = (org.openedit.data.BaseData)  getMediaArchive().getSearcherManager().getData( getMediaArchive().getCatalogId(), detail.getListId(), stringvalue);
+							if (remote == null){
+								sourceAssetAttributeData.setStringValue(stringvalue);
+							} else if(remote.get("fatwirevalue") != null && !remote.get("fatwirevalue").isEmpty()){
 								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
 							} else{
-								sourceAssetAttributeData.setStringValue(remote.getName());
+								sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
 							}
 						} if (detail.isDate()) {
 							Date date = DateStorageUtil.getStorageUtil().parseFromStorage(stringvalue);
