@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.ws.rs.core.MediaType;
 
@@ -276,23 +278,31 @@ public class FatwireManager {
 		}
 		else 
 		{
-			fwasset.setName(inAsset.getName());
+			fwasset.setName(inAsset.getName());//make sure the name is filled in
 		}
-		fwasset.setDescription(inAsset.get("assettitle"));
+		if (inAsset.get("assettitle") == null || !inAsset.get("assettitle").isEmpty())
+		{
+			fwasset.setDescription(fwasset.getName());//make sure description is filled in
+		}
+		else
+		{
+			fwasset.setDescription(inAsset.get("assettitle"));
+		}
 		fwasset.setSubtype(inSubtype);
 		fwasset.getPublists().add(inSite);
 		
-		//required fields: source, thumbnailurl, imageurl, width, height, alttext, usagerights,sendtolexis
-		//other fields: keywords, artist, caption, shootdate, startdate, endate
+		//this should be configurable
 		String thumbpath = "/image/EM/thumb_"+inExportName;
 		String originalpath = "/image/EM/"+inExportName;
 		
 		String width = inDimension!=null ? String.valueOf((int) inDimension.getWidth()) : inAsset.get("width");
 		String height = inDimension!=null ? String.valueOf( (int) inDimension.getHeight()) : inAsset.get("height");
 		
-		String alttext = inAsset.get("headline");
-		String usagerights = (inUsage == null || inUsage.isEmpty() ? "0" : inUsage);
-		String artist = inAsset.get("artist");
+		//these should be covered in configurable fields
+//		String alttext = inAsset.get("headline");
+//		String usagerights = (inUsage == null || inUsage.isEmpty() ? "0" : inUsage);
+//		String artist = inAsset.get("artist");
+		
 		StringBuilder buf = new StringBuilder();
 		List<String> keywords = inAsset.getKeywords();
 		for (String keyword : keywords) {
@@ -310,9 +320,7 @@ public class FatwireManager {
 			{"imageurl",originalpath},
 			{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
 			{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
-			{"alttext",alttext},
-			{"keywords",keywordlist},
-			{"artist",artist}
+			{"keywords",keywordlist}
         };
         for (int i=0; i<attributes.length;i++)
         {
@@ -361,6 +369,11 @@ public class FatwireManager {
 //					} else if (name.equals("usagerights") && (stringvalue==null || stringvalue.isEmpty()) ){
 //						stringvalue = usagerights;
 //					}
+					
+					//fatwirefield should be of the format: field1{default},field2{default} or something like that
+					
+					String defaultValue = findField(name,inAsset,"0");
+					
 					String[] fatwirefields = name.split(",");
 					for (int i = 0; i < fatwirefields.length; i++) {
 						String fatwirefield = fatwirefields[i].trim();
@@ -392,6 +405,7 @@ public class FatwireManager {
 								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
 								log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " to fatwire assetbean");
 							} else{
+								//todo: use default value
 								sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
 								log.info("adding " + fatwirefield + ":" + remote.getName()+ " to fatwire assetbean");
 							}
@@ -410,8 +424,8 @@ public class FatwireManager {
 			}
         }
         
-        //debug
-//        printAssetBean(fwasset);
+        log.info("AssetBean SENT to fatwire:");
+        printAssetBean(fwasset);
         
         
 		String multiticket = getTicket();
@@ -429,6 +443,7 @@ public class FatwireManager {
 		try
 		{
 			ab = builder.put(AssetBean.class, fwasset);
+			log.info("AssetBean RESPONSE from fatwire:");
 			printAssetBean(ab);
 		}
 		catch (UniformInterfaceException e)
@@ -444,6 +459,48 @@ public class FatwireManager {
 		}
 		return ab;
 	}
+	
+	protected String findField(String inCode, Asset inAsset, String inDefault)
+	{
+		if(inCode == null)
+		{
+			return inCode;
+		}
+		int start = 0;
+		//todo
+//		while( (start = inCode.indexOf("${",start)) != -1)
+//		{
+//			int end = inCode.indexOf("}",start);			
+//			if( end == -1)
+//			{
+//				break;
+//			}
+//			String key = inCode.substring(start+2,end);
+//			String variable = null;
+//			ArrayList<String> values = findKeys(key,"||");
+//			for(String value:values)
+//			{
+//				variable = inAsset.get(value); //check for property
+//				if( variable == null )
+//				{
+//					continue;
+//				}
+//				return variable;
+//			}
+//			start = end; //could not find a hit, go to the next one
+//		}
+		return inDefault;
+	}
+	
+	protected ArrayList<String> findKeys(String Subject, String Delimiters) 
+    {
+		StringTokenizer tok = new StringTokenizer(Subject, Delimiters);
+		ArrayList<String> list = new ArrayList<String>(Subject.length());
+		while(tok.hasMoreTokens()){
+			list.add(tok.nextToken());
+		}
+		return list;
+    }
 	
 	public List<Site> getSites()
 	{
@@ -528,9 +585,9 @@ public class FatwireManager {
 			buf.append("\tstatus:\t").append(bean.getStatus()).append("\n");
 			buf.append("\tsubtype:\t").append(bean.getSubtype()).append("\n");
 			buf.append("\tupdatedby:\t").append(bean.getUpdatedby()).append("\n");
-			buf.append(getAssociationsStr(bean.getAssociations()));
-			buf.append(getAttributesStr(bean.getAttributes()));
-			buf.append(getPublistsStr(bean.getPublists()));
+			if (bean.getAssociations()!=null) buf.append(getAssociationsStr(bean.getAssociations()));
+			if (bean.getAttributes()!=null) buf.append(getAttributesStr(bean.getAttributes()));
+			if (bean.getPublists()!=null) buf.append(getPublistsStr(bean.getPublists()));
 		}
 		log.info(buf.toString().trim());
 	}
