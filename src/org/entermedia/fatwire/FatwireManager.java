@@ -463,7 +463,7 @@ public class FatwireManager {
 	
 	protected String formatErrorMessage(Exception inException){
 		String message = inException.getMessage();
-		Searcher searcher = getMediaArchive().getSearcherManager().getSearcher(getMediaArchive().getCatalogId(),"fatwirexception");
+		Searcher searcher = getMediaArchive().getSearcherManager().getSearcher(getMediaArchive().getCatalogId(),"fatwireexception");
 		HitTracker hits = searcher.getAllHits();
 		if (hits!=null){
 			for (Iterator itr = hits.iterator(); itr.hasNext(); ){
