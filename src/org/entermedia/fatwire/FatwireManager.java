@@ -454,30 +454,33 @@ public class FatwireManager {
 		}
 		catch (UniformInterfaceException e)
 		{
-			log.error("UniformInterfaceException caught while issuing put(), "+e.getMessage(), e);
-			String errorMessage = formatErrorMessage(e);
+			log.error("UniformInterfaceException caught while issuing put(), message=["+e.getMessage()+"]", e);
+			String errorMessage = formatErrorMessage(e.getMessage());
 			throw new IOException(errorMessage,e);
 		}
 		return ab;
 	}
 	
-	protected String formatErrorMessage(Exception inException){
-		String message = inException.getMessage();
+	protected String formatErrorMessage(String inMessage){
 		Searcher searcher = getMediaArchive().getSearcherManager().getSearcher(getMediaArchive().getCatalogId(),"fatwireexception");
 		HitTracker hits = searcher.getAllHits();
 		if (hits!=null){
 			for (Iterator itr = hits.iterator(); itr.hasNext(); ){
 				org.openedit.Data data = (org.openedit.Data) itr.next();
-				if (data.get("errorcode")!=null || !data.get("errorcode").isEmpty() && message.contains(data.get("errorcode"))){
+				log.info("formatting error message, found "+data.getName()+", "+data.get("errorcode"));
+				if (inMessage.contains(data.get("errorcode"))){
+					log.info("message ["+inMessage+"] contains error code "+data.get("errorcode")+", returning "+data.get("message"));
 					return data.get("message");
 				}
+				log.info("message ["+inMessage+"] does not contain error code "+data.get("errorcode"));
 			}
 		}
-		if (message.contains("returned a response status of"))
+		log.info("message ["+inMessage+"] does not contain any hits, returning default");
+		if (inMessage.contains("returned a response status of"))
 		{
-			message = "UniformInterfaceException "+message.substring(message.indexOf("returned a response status of"));
+			return "UniformInterfaceException "+inMessage.substring(inMessage.indexOf("returned a response status of"));
 		}
-		return message;
+		return inMessage;
 	}
 	
 	protected boolean isDefaultAttribute(String inFatwirefield,String [][] inDefaultAttributes){
