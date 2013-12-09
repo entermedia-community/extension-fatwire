@@ -7,10 +7,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 
@@ -361,23 +364,19 @@ public class FatwireManager {
 				PropertyDetail detail = (PropertyDetail) iterator.next();
 				String name = detail.get("fatwirefield");
 				if(name != null){
+					//fatwirefield format: externalid1,externalid2,default={$a||$b||$c||d}
+					List<String> list = findDefaultValue(name,inAsset);
+					log.info("&&& found default values = "+list);
+					String fatwirefields = list.get(0);
+					String defaultvalue = list.size()==2 ? list.get(1) : null;
 					String stringvalue = inAsset.get(detail.getId());
-					//these should be left out
-					//they're required by fatwire so it should give an error if they're incorrect
-//					if (name.equals("sendtolexis") && (stringvalue==null || stringvalue.isEmpty()) ){
-//						stringvalue = "y";//y or n
-//					} else if (name.equals("usagerights") && (stringvalue==null || stringvalue.isEmpty()) ){
-//						stringvalue = usagerights;
-//					}
-					
-					//fatwirefield should be of the format: field1{default},field2{default} or something like that
-					
-					String defaultValue = findField(name,inAsset,"0");
-					
-					String[] fatwirefields = name.split(",");
-					for (int i = 0; i < fatwirefields.length; i++) {
-						String fatwirefield = fatwirefields[i].trim();
+					ArrayList<String> fields = findKeys(fatwirefields,",");
+					for (String fatwirefield:fields) {
 						if (fatwirefield.isEmpty()){
+							continue;
+						}
+						if (isDefaultAttribute(fatwirefield,attributes)){
+							log.info("skipping "+fatwirefield+", has already been added by default");
 							continue;
 						}
 						Attribute sourceAssetAttribute = new Attribute();
@@ -389,33 +388,41 @@ public class FatwireManager {
 							org.openedit.Data remote = (org.openedit.Data) searcher.searchById(stringvalue);
 							if (remote == null){
 								remote = (org.openedit.Data) searcher.searchByField("default", "true");
-								if (remote == null){
+								if (remote == null){//no default found so return what?
+									//if stringvalue is not valid, then return defaultvalue
+									stringvalue = generateValue(stringvalue,defaultvalue);
 									sourceAssetAttributeData.setStringValue(stringvalue);
-									log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean");
+									log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean (property is list, null)");
 								} else {
 									if(remote.get("fatwirevalue") != null && !remote.get("fatwirevalue").isEmpty()){
 										sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
-										log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " (default value) to fatwire assetbean");
+										log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " (default value) to fatwire assetbean (property is list, found default)");
 									} else{
-										sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
-										log.info("adding " + fatwirefield + ":" + remote.getName()+ " to fatwire assetbean");
+										//if stringvalue is not valid, then return defaultvalue
+										stringvalue = generateValue(stringvalue,defaultvalue);
+										sourceAssetAttributeData.setStringValue(stringvalue);
+										log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean (property is list, no default value set)");
 									}
 								}
 							} else if(remote.get("fatwirevalue") != null && !remote.get("fatwirevalue").isEmpty()){
 								sourceAssetAttributeData.setStringValue( remote.get("fatwirevalue") );
-								log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " to fatwire assetbean");
+								log.info("adding " + fatwirefield + ":" + remote.get("fatwirevalue")+ " to fatwire assetbean (property is list, found fatwire value)");
 							} else{
-								//todo: use default value
-								sourceAssetAttributeData.setStringValue(remote.getName());//publish the name if all else fails
-								log.info("adding " + fatwirefield + ":" + remote.getName()+ " to fatwire assetbean");
+								//if stringvalue is not valid, then return defaultvalue
+								stringvalue = generateValue(stringvalue,defaultvalue);
+								sourceAssetAttributeData.setStringValue(stringvalue);
+								log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean (property is list, no fatwirevalue found");
 							}
 						} else if (detail.isDate()) {
+							//currently cannot support a default type for dates
 							Date date = DateStorageUtil.getStorageUtil().parseFromStorage(stringvalue);
 							sourceAssetAttributeData.setDateValue(date);
-							log.info("adding " + fatwirefield + ":" + date+ " to fatwire assetbean");
+							log.info("adding " + fatwirefield + ":" + date+ " to fatwire assetbean (property is date)");
 						} else {
+							//if stringvalue is not valid, then return defaultvalue
+							stringvalue = generateValue(stringvalue,defaultvalue);
 							sourceAssetAttributeData.setStringValue(stringvalue);
-							log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean");
+							log.info("adding " + fatwirefield + ":" + stringvalue+ " to fatwire assetbean (property is string)");
 						}
 						sourceAssetAttribute.setData(sourceAssetAttributeData);
 						fwasset.getAttributes().add(sourceAssetAttribute);
@@ -426,7 +433,6 @@ public class FatwireManager {
         
         log.info("AssetBean SENT to fatwire:");
         printAssetBean(fwasset);
-        
         
 		String multiticket = getTicket();
 		log.info("generated ticket from sso: "+multiticket);
@@ -449,47 +455,78 @@ public class FatwireManager {
 		catch (UniformInterfaceException e)
 		{
 			log.error("UniformInterfaceException caught while issuing put(), "+e.getMessage(), e);
-			//trim message
-			String errorMessage = e.getMessage();
-			if (errorMessage.contains("returned a response status of"))
-			{
-				errorMessage = "UniformInterfaceException "+errorMessage.substring(errorMessage.indexOf("returned a response status of"));
-			}
+			String errorMessage = formatErrorMessage(e);
 			throw new IOException(errorMessage,e);
 		}
 		return ab;
 	}
 	
-	protected String findField(String inCode, Asset inAsset, String inDefault)
-	{
-		if(inCode == null)
-		{
-			return inCode;
+	protected String formatErrorMessage(Exception inException){
+		String message = inException.getMessage();
+		Searcher searcher = getMediaArchive().getSearcherManager().getSearcher(getMediaArchive().getCatalogId(),"fatwirexception");
+		HitTracker hits = searcher.getAllHits();
+		if (hits!=null){
+			for (Iterator itr = hits.iterator(); itr.hasNext(); ){
+				org.openedit.Data data = (org.openedit.Data) itr.next();
+				if (data.get("errorcode")!=null || !data.get("errorcode").isEmpty() && message.contains(data.get("errorcode"))){
+					return data.get("message");
+				}
+			}
 		}
-		int start = 0;
-		//todo
-//		while( (start = inCode.indexOf("${",start)) != -1)
-//		{
-//			int end = inCode.indexOf("}",start);			
-//			if( end == -1)
-//			{
-//				break;
-//			}
-//			String key = inCode.substring(start+2,end);
-//			String variable = null;
-//			ArrayList<String> values = findKeys(key,"||");
-//			for(String value:values)
-//			{
-//				variable = inAsset.get(value); //check for property
-//				if( variable == null )
-//				{
-//					continue;
-//				}
-//				return variable;
-//			}
-//			start = end; //could not find a hit, go to the next one
-//		}
-		return inDefault;
+		if (message.contains("returned a response status of"))
+		{
+			message = "UniformInterfaceException "+message.substring(message.indexOf("returned a response status of"));
+		}
+		return message;
+	}
+	
+	protected boolean isDefaultAttribute(String inFatwirefield,String [][] inDefaultAttributes){
+		if (inDefaultAttributes == null){
+			return false;
+		}
+		for (String [] attribute:inDefaultAttributes){
+			if (attribute[0].equals(inFatwirefield))
+				return true;
+		}
+		return false;
+	}
+	
+	protected String generateValue(String inValue, String inDefault){
+		if (inValue == null || inValue.isEmpty()){
+			return inDefault;
+		}
+		return inValue;
+	}
+	
+	protected List<String> findDefaultValue(String inCode, Asset inAsset)
+	{
+		//externalid1,externalid2,default={$a||$b||$c||d}
+		List<String> list = new ArrayList<String>();
+		int startindex = -1;
+		int endindex = -1;
+		if ( (startindex = inCode.indexOf("default=")) > -1 && (endindex = inCode.lastIndexOf("}")) > -1 && startindex < endindex){
+			String difference = new StringBuilder().append(inCode.substring(0,startindex)).append(inCode.substring(endindex+"}".length())).toString();
+			list.add(difference);
+			String defaultValue = null;
+			String tokens = inCode.substring(startindex + "default=".length(), endindex).replace("{", "").replace("}","");
+			List<String> fields = findKeys(tokens,"||");
+			for (String field:fields){
+				if (field.startsWith("$")){
+					field = field.substring("$".length());
+					if (inAsset.get(field)!=null && !inAsset.get(field).isEmpty()){
+						defaultValue = inAsset.get(field);
+						break;
+					}
+					continue;
+				}
+				defaultValue = field;
+				break;
+			}
+			if (defaultValue!=null) list.add(defaultValue);
+		} else {
+			list.add(inCode);
+		}
+		return list;
 	}
 	
 	protected ArrayList<String> findKeys(String Subject, String Delimiters) 
@@ -564,6 +601,21 @@ public class FatwireManager {
 			return ticket;
 		} catch (SSOException e) {
 			log.error("unable to generate SSO Session Ticket, "+e.getMessage(),e);
+			
+			 // Troubleshooting SSOException
+            // ============================
+            //
+            // Cause: CAS is not running.
+            // Remedy: Deploy CAS and start up the application server for CAS
+            // webapp.
+            //
+            // Cause: CAS is not configured.
+            // Remedy: Verify that the URL in the CAS config file,
+            // ExampleCASConfig.xml, is reachable.
+            //
+            // Cause: Username / password is invalid.
+            // Remedy: Use valid username / password to authenticate against
+            // CAS.
 		}
 		return null;
 	}
