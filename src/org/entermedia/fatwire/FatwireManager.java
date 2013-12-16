@@ -295,7 +295,7 @@ public class FatwireManager {
 		fwasset.getPublists().add(inSite);
 		
 		//this should be configurable
-		String thumbpath = "/image/EM/thumb_"+inExportName;
+//		String thumbpath = "/image/EM/thumb_"+inExportName;
 		String originalpath = "/image/EM/"+inExportName;
 		
 		String width = inDimension!=null ? String.valueOf((int) inDimension.getWidth()) : inAsset.get("width");
@@ -319,7 +319,7 @@ public class FatwireManager {
 		//list of attribute name:value pairs
         String[][] attributes = {
 			{"source","0"},//0 by default
-			{"thumbnailurl",thumbpath},
+			{"thumbnailurl",originalpath},//Dec 16 - testing use of original path for thumbnail url
 			{"imageurl",originalpath},
 			{"width","int:"+ (width == null || width.isEmpty() ? "0" : width)},
 			{"height","int:"+(height == null || height.isEmpty() ? "0" : height)},
@@ -364,11 +364,10 @@ public class FatwireManager {
 				PropertyDetail detail = (PropertyDetail) iterator.next();
 				String name = detail.get("fatwirefield");
 				if(name != null){
-					//fatwirefield format: externalid1,externalid2,default={$a||$b||$c||d}
 					List<String> list = findDefaultValue(name,inAsset);
-					log.info("&&& found default values = "+list);
 					String fatwirefields = list.get(0);
 					String defaultvalue = list.size()==2 ? list.get(1) : null;
+					log.info("values for fatwirefield["+name+"]: "+fatwirefields+" ("+defaultvalue+")");
 					String stringvalue = inAsset.get(detail.getId());
 					ArrayList<String> fields = findKeys(fatwirefields,",");
 					for (String fatwirefield:fields) {
@@ -495,7 +494,7 @@ public class FatwireManager {
 	}
 	
 	protected String generateValue(String inValue, String inDefault){
-		if (inValue == null || inValue.isEmpty()){
+		if (inValue == null){
 			return inDefault;
 		}
 		return inValue;
@@ -503,12 +502,15 @@ public class FatwireManager {
 	
 	protected List<String> findDefaultValue(String inCode, Asset inAsset)
 	{
-		//externalid1,externalid2,default={$a||$b||$c||d}
+		//pattern: fatwire-external-ids,default={$a||$b||$c||d}
 		List<String> list = new ArrayList<String>();
 		int startindex = -1;
 		int endindex = -1;
 		if ( (startindex = inCode.indexOf("default=")) > -1 && (endindex = inCode.lastIndexOf("}")) > -1 && startindex < endindex){
-			String difference = new StringBuilder().append(inCode.substring(0,startindex)).append(inCode.substring(endindex+"}".length())).toString();
+			String difference = new StringBuilder().append(inCode.substring(0,startindex)).append(inCode.substring(endindex+"}".length())).toString().trim();
+			if (difference.endsWith(",")) {
+				difference = difference.substring(0,difference.length() - ",".length());
+			}
 			list.add(difference);
 			String defaultValue = null;
 			String tokens = inCode.substring(startindex + "default=".length(), endindex).replace("{", "").replace("}","");
