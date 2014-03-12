@@ -56,6 +56,7 @@ public class FatwireManager {
 	protected MediaArchive fieldMediaArchive;
 	protected XmlArchive fieldXmlArchive;
 	protected UserManager fieldUserManager;
+	protected FatwireUtil fieldFatwireUtil;
 	
 	public PageManager getPageManager()
 	{
@@ -98,6 +99,20 @@ public class FatwireManager {
 	public void setSSOConfig(String inSSOConfig)
 	{
 		fieldSSOConfig = inSSOConfig;
+	}
+	
+	public FatwireUtil getFatwireUtil()
+	{
+		if (fieldFatwireUtil == null)//lazy init
+		{
+			fieldFatwireUtil = new FatwireUtil();
+		}
+		return fieldFatwireUtil;
+	}
+	
+	public void setFatwireUtil(FatwireUtil inFatwireUtil)
+	{
+		fieldFatwireUtil = inFatwireUtil;
 	}
 	
 	public Client getClient()
@@ -257,16 +272,102 @@ public class FatwireManager {
         inFwAsset.getAttributes().add(catattr);
 	}
 	
+	/**
+	 * Push an asset to fatwire
+	 * @param inArchive
+	 * @param inAsset
+	 * @param inData
+	 * @throws IOException
+	 */
+	public void pushAsset(Asset inAsset, org.openedit.Data inData) throws IOException
+	{
+		//get site and type from data
+		String site = inData.get("site");
+		String type = inData.get("type");
+		//build the fatwire asset from supplied arguments
+		AssetBean fwasset = getFatwireUtil().buildAsset(getMediaArchive(), inAsset, inData);
+		log.info("AssetBean SENT to fatwire:");
+        printAssetBean(fwasset);
+        //generate multiticket
+		String multiticket = getTicket();
+		log.info("generated ticket from sso: "+multiticket);
+		String urlbase = getUrlBase();
+		//spin up client
+		Client client = Client.create();
+		WebResource webResource = client.resource(urlbase);
+		webResource = webResource.queryParam("multiticket", multiticket);
+        webResource = webResource.path("sites").path(site).path("types").path(type).path("assets").path("0");
+        Builder builder = webResource.accept(MediaType.APPLICATION_JSON);//APPLICATION_XML throws a security exception, use JSON
+        builder = builder.header("X-CSRF-Token", multiticket);//this is required
+        
+		AssetBean ab = null;
+		try
+		{
+			ab = builder.put(AssetBean.class, fwasset);
+			log.info("AssetBean RESPONSE from fatwire:");
+			printAssetBean(ab);
+		}
+		catch (UniformInterfaceException e)
+		{
+			log.error("UniformInterfaceException caught while issuing put(), message=["+e.getMessage()+"]", e);
+			String errorMessage = getFatwireUtil().formatErrorMessage(getMediaArchive(),e.getMessage());
+			throw new IOException(errorMessage,e);
+		}
+		//set the fatwireid in the data argument
+		if (ab!=null && ab.getId()!=null)
+		{
+			inData.setProperty("fatwireid", ab.getId());
+		}
+	}
+	
+	/**
+	 * @deprecated use pushAsset(archive,asset,data)
+	 * @param inAsset
+	 * @param inUser
+	 * @param inUrlHome
+	 * @param inUsage
+	 * @param exportName
+	 * @param outputFile
+	 * @param inDimension
+	 * @return
+	 * @throws IOException
+	 */
 	public AssetBean pushAsset(Asset inAsset, User inUser, String inUrlHome, String inUsage, String exportName, String outputFile, Dimension inDimension) throws IOException
 	{
 		return pushAsset(inAsset, "CA", "Image_C", "Image", inUser, inUrlHome, inUsage, exportName, outputFile, inDimension);
 	}
 	
+	/**
+	 * @deprecated
+	 * @param inAsset
+	 * @param inType
+	 * @param inSubtype
+	 * @param inUser
+	 * @param inUrlHome
+	 * @param inUsage
+	 * @return
+	 * @throws IOException
+	 */
 	public AssetBean pushAsset(Asset inAsset, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage) throws IOException
 	{
 		return pushAsset(inAsset, getSite(), inType, inSubtype, inUser, inUrlHome, inUsage, null, null, null);
 	}
 	
+	/**
+	 * @deprecated
+	 * @param inAsset
+	 * @param inSite
+	 * @param inType
+	 * @param inSubtype
+	 * @param inUser
+	 * @param inUrlHome
+	 * @param inUsage
+	 * @param inExportName
+	 * @param inOutputFile
+	 * @param inDimension
+	 * @return
+	 * @throws IOException
+	 */
 	public AssetBean pushAsset(Asset inAsset, String inSite, String inType, String inSubtype, User inUser, String inUrlHome, String inUsage, String inExportName, String inOutputFile, Dimension inDimension) throws IOException
 	{
 		log.info("pushAsset ("+(inAsset!=null ? inAsset.getId() : "null")+","+
