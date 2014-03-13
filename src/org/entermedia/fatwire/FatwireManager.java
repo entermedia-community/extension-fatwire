@@ -3,17 +3,12 @@ package org.entermedia.fatwire;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 
@@ -52,6 +47,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
 public class FatwireManager {
 	private static final Log log = LogFactory.getLog(FatwireManager.class);
 	protected Client fieldClient;
+	//include SSOConfig.xml in /WEB-INF/classes/ folder
 	protected String fieldSSOConfig = "SSOConfig.xml";
 	protected MediaArchive fieldMediaArchive;
 	protected XmlArchive fieldXmlArchive;
@@ -289,7 +285,14 @@ public class FatwireManager {
 		log.info("AssetBean SENT to fatwire:");
         printAssetBean(fwasset);
         //generate multiticket
-		String multiticket = getTicket();
+		String multiticket = null;
+		try{
+			multiticket = getMultiTicket();
+		}catch (SSOException e){
+			log.error("SSOException caught getting multiticket, message=["+e.getMessage()+"]", e);
+			String errorMessage = getFatwireUtil().formatErrorMessage(getMediaArchive(),e.getMessage());
+			throw new IOException(errorMessage,e);
+		}
 		log.info("generated ticket from sso: "+multiticket);
 		String urlbase = getUrlBase();
 		//spin up client
@@ -724,6 +727,18 @@ public class FatwireManager {
             // CAS.
 		}
 		return null;
+	}
+	
+	//use the following capture SSO Exceptions
+	public String getMultiTicket() throws SSOException
+	{
+		String username = getUserName();
+		User user = getUserManager().getUser(username);
+		String password = getUserManager().decryptPassword(user);
+		String config = getSSOConfig();
+		log.info("Getting SSO Session multi-ticket ("+config+", "+username+")");
+		String ticket = SSO.getSSOSession(config).getMultiTicket(username, password);
+		return ticket;
 	}
 	
 	public static void printAssetBean(AssetBean bean)
