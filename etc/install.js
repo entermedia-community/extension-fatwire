@@ -9,15 +9,15 @@ var root = moduleManager.getBean("root").getAbsolutePath();
 var web = root + "/WEB-INF";
 var tmp = web + "/tmp";
 
-log.add("1. GET THE LATEST WAR FILE");
+log.info("1. GET THE LATEST WAR FILE");
 var downloader = new Downloader();
 downloader.download( war, tmp + "/extension-fatwire.zip");
 
-log.add("2. UNZIP WAR FILE");
+log.info("2. UNZIP WAR FILE");
 var unziper = new ZipUtil();
 unziper.unzip(  tmp + "/extension-fatwire.zip",  tmp );
 
-log.add("3. REPLACE LIBS");
+log.info("3. REPLACE LIBS");
 var files = new FileUtils();
 files.deleteMatch (web + "/lib/extension-fatwire*.jar");
 
@@ -51,7 +51,7 @@ files.copyFileByMatch( tmp + "/lib/wem-sso-cas-integration-rest-1.2.jar", web + 
 files.copyFileByMatch( tmp + "/lib/xwork-2.0.4.jar", web + "/lib/");
 
 
-log.add("5. CLEAN UP");
+log.info("5. CLEAN UP");
 files.deleteAll(tmp);
 
-log.add("6. UPGRADE COMPLETED");
+log.info("6. UPGRADE COMPLETED");
