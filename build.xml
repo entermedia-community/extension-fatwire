@@ -173,6 +173,9 @@
 		 	<copy file="${etc}/install.js" overwrite="true"
 		        tofile="${deployDir}/install.js"/>
 
+	 	<copy file="${etc}/fatwireextension.xml" overwrite="true"
+	        tofile="${deployDir}/fatwireextension.xml"/>
+
 			
 		</target>
 	  
