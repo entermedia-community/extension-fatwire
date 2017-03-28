@@ -10,11 +10,12 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.entermediadb.asset.Asset;
+import org.entermediadb.asset.MediaArchive;
 import org.openedit.data.PropertyDetail;
 import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
-import org.openedit.entermedia.Asset;
-import org.openedit.entermedia.MediaArchive;
+import org.openedit.hittracker.HitTracker;
 import org.openedit.util.DateStorageUtil;
 
 import com.fatwire.rest.beans.AssetBean;
@@ -22,7 +23,6 @@ import com.fatwire.rest.beans.Association;
 import com.fatwire.rest.beans.Associations;
 import com.fatwire.rest.beans.Attribute;
 import com.fatwire.rest.beans.Attribute.Data;
-import com.openedit.hittracker.HitTracker;
 
 public class FatwireUtil {
 	
@@ -59,7 +59,7 @@ public class FatwireUtil {
 		String path = new StringBuilder().append(imagepath).append(exportname).toString();
 		
 		StringBuilder buf = new StringBuilder();
-		List<String> keywords = inAsset.getKeywords();
+		Collection<String> keywords = inAsset.getKeywords();
 		for (String keyword : keywords)
 		{
 			buf.append(keyword).append(",");

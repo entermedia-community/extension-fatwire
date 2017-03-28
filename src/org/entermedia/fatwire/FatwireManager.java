@@ -14,12 +14,18 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.entermediadb.asset.Asset;
+import org.entermediadb.asset.MediaArchive;
 import org.openedit.data.PropertyDetail;
 import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
-import org.openedit.entermedia.Asset;
-import org.openedit.entermedia.MediaArchive;
+import org.openedit.hittracker.HitTracker;
+import org.openedit.hittracker.SearchQuery;
+import org.openedit.page.manage.PageManager;
+import org.openedit.users.User;
+import org.openedit.users.UserManager;
 import org.openedit.util.DateStorageUtil;
+import org.openedit.util.PathUtilities;
 import org.openedit.xml.XmlArchive;
 
 import com.fatwire.rest.beans.AssetBean;
@@ -33,12 +39,6 @@ import com.fatwire.rest.beans.Site;
 import com.fatwire.rest.beans.SitesBean;
 import com.fatwire.wem.sso.SSO;
 import com.fatwire.wem.sso.SSOException;
-import com.openedit.hittracker.HitTracker;
-import com.openedit.hittracker.SearchQuery;
-import com.openedit.page.manage.PageManager;
-import com.openedit.users.User;
-import com.openedit.users.UserManager;
-import com.openedit.util.PathUtilities;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -411,7 +411,7 @@ public class FatwireManager {
 //		String artist = inAsset.get("artist");
 		
 		StringBuilder buf = new StringBuilder();
-		List<String> keywords = inAsset.getKeywords();
+		Collection<String> keywords = inAsset.getKeywords();
 		for (String keyword : keywords) {
 			buf.append(keyword).append(",");
 		}

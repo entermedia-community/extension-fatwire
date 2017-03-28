@@ -2,11 +2,10 @@ package org.entermedia.fatwire;
 
 import java.io.IOException;
 
-import org.openedit.entermedia.Asset;
-import org.openedit.entermedia.MediaArchive;
-
-import com.openedit.WebPageRequest;
-import com.openedit.modules.BaseModule;
+import org.entermediadb.asset.Asset;
+import org.entermediadb.asset.MediaArchive;
+import org.openedit.WebPageRequest;
+import org.openedit.modules.BaseModule;
 
 public class FatwireModule extends BaseModule
 {
