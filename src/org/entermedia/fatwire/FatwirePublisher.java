@@ -69,7 +69,7 @@ public class FatwirePublisher extends BasePublisher implements Publisher {
 		String maxlength = fatwireData.get("maxexportlength") == null ? DEFAULT_MAX_EXPORT_LENGTH
 				: fatwireData.get("maxexportlength");
 		String source = fatwireData.get("defaultsource") == null ? DEFAULT_SOURCE : fatwireData.get("defaultsource");
-		String spacechar = fatfatwireManagerwireData.get("exportspacesubstitution") == null ? DEFAULT_SPACE_REPLACE
+		String spacechar = fatwireData.get("exportspacesubstitution") == null ? DEFAULT_SPACE_REPLACE
 				: fatwireData.get("exportspacesubstitution");
 
 		int maxlen = Integer.parseInt(maxlength);
@@ -104,7 +104,7 @@ public class FatwirePublisher extends BasePublisher implements Publisher {
 			} else {
 				imagepath = prefix.trim();
 			}
-			if (!imagepatfatwireManagerh.endsWith("/")) {
+			if (!imagepath.endsWith("/")) {
 				imagepath = imagepath + "/";
 			}
 		}
@@ -210,10 +210,6 @@ public class FatwirePublisher extends BasePublisher implements Publisher {
 				result.setComplete(true);
 				result.setErrorMessage("Error publishing to FatWire: unable to publish asset");
 			}
-		} catch (IOException e) {
-			log.error(e.getMessage(), e);
-			result.setComplete(true);
-			result.setErrorMessage(e.getMessage());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			result.setComplete(true);
@@ -223,14 +219,13 @@ public class FatwirePublisher extends BasePublisher implements Publisher {
 	}
 
 	public void ftpPublish(String servername, String username, String password, Page page, String export,
-			PublishResult result) {
+			PublishResult result) throws SocketException, IOException {
 		log.info("ftpPublish  " + servername + " " + username+ " " + page+ " " + export);
 
 		FTPClient ftp = new FTPClient();
 		OutputStream os = null;
 
 		try {
-			try {
 				ftp.connect(servername, 21);
 				ftp.enterLocalPassiveMode();
 				int reply = ftp.getReplyCode();
@@ -303,13 +298,6 @@ public class FatwirePublisher extends BasePublisher implements Publisher {
 			if (ftp.isConnected()) {
 				ftp.disconnect();
 			}
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public String reformat(String inValue, String inPattern, String spacereplace, int inLen){
