@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.MediaArchive;
+import org.openedit.OpenEditException;
 import org.openedit.data.PropertyDetail;
 import org.openedit.data.Searcher;
 import org.openedit.data.SearcherManager;
@@ -674,12 +675,12 @@ public class FatwireManager {
 		return data.get("server");
 	}
 	
-	public String getUserName()
+	public String getUserName() throws OpenEditException
 	{
 		SearcherManager sm = getMediaArchive().getSearcherManager();
 		Searcher searcher = sm.getSearcher(getMediaArchive().getCatalogId(), "publishdestination");
 		org.openedit.Data data = (org.openedit.Data) searcher.searchByField("publishtype", "fatwire");
-		if (data == null) return null;
+		if (data == null){ throw new OpenEditException();};
 		return data.get("username");
 	}
 	
@@ -692,6 +693,9 @@ public class FatwireManager {
 	{
 		String username = null;
 		String password = null;
+		try {
+			
+		
 		if (inUser == null)
 		{
 			username = getUserName();
@@ -703,6 +707,10 @@ public class FatwireManager {
 			username = inUser.getUserName();
 			password = getUserManager().decryptPassword(inUser);
 		}
+		} catch (OpenEditException e) {
+			// TODO: handle exception
+		}
+		
 		String config = getSSOConfig();
 		log.info("Getting SSO Session ticket ("+config+", "+username+")");
 		try {
