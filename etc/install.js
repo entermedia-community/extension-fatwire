@@ -34,6 +34,7 @@ files.deleteMatch (web + "/lib/wem-sso-api-cas-plugin-cs-1.2.2.jar");
 files.deleteMatch (web + "/lib/wem-sso-api-oam-1.2.2.jar");
 files.deleteMatch (web + "/lib/wem-sso-cas-integration-rest-1.2.jar");
 files.deleteMatch (web + "/lib/xwork-2.0.4.jar");
+files.deleteMatch (web + "/lib/spring-*.jar");
 
 files.copyFileByMatch( tmp + "/lib/extension-fatwire*.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/cas-client-core-3.1.9.jar", web + "/lib/");
@@ -49,6 +50,7 @@ files.copyFileByMatch( tmp + "/lib/wem-sso-api-cas-plugin-cs-1.2.2.jar", web + "
 files.copyFileByMatch( tmp + "/lib/wem-sso-api-oam-1.2.2.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/wem-sso-cas-integration-rest-1.2.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/xwork-2.0.4.jar", web + "/lib/");
+files.copyFileByMatch( tmp + "/lib/spring-*.jar", web + "/lib/");
 
 
 files.deleteMatch( web + "/WEB-INF/base/fatwire/")
