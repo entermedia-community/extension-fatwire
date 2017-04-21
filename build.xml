@@ -100,8 +100,8 @@
 		<mkdir dir="${deployDir}/builds/"/>
 		<zip destfile="${deployDir}/builds/${appname}.zip" >			
 			<zipfileset dir="${lib}" prefix="lib" excludes="compile/**"/>
-			
 			<zipfileset dir="${deployDir}/builds/" includes="${appname}-${version}.jar" prefix="lib"/>
+			<zipfileset dir="${webapp}/webapp/WEB-INF/base/fatwire" prefix="base/fatwire" />
 		</zip>
   </target>
 	    

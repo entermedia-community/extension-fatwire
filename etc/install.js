@@ -51,6 +51,10 @@ files.copyFileByMatch( tmp + "/lib/wem-sso-cas-integration-rest-1.2.jar", web + 
 files.copyFileByMatch( tmp + "/lib/xwork-2.0.4.jar", web + "/lib/");
 
 
+files.deleteMatch( web + "/WEB-INF/base/fatwire/")
+files.copyFileByMatch( tmp + "/base/fatwire/", root + "/WEB-INF/base/fatwire/");
+
+
 log.info("5. CLEAN UP");
 files.deleteAll(tmp);
 

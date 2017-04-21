@@ -1,44 +1,35 @@
 package org.entermedia.fatwire;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.io.File;
-import java.io.FileInputStream;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
+import java.util.Date;
 
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
-import org.openedit.Data
-import org.openedit.data.BaseData
-import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.entermedia.publishing.*
-
-import com.openedit.hittracker.SearchQuery;
-
-import java.net.URL;
-import java.awt.Dimension;
-
-import com.openedit.page.Page
-import com.openedit.util.FileUtils
-import com.openedit.util.RequestUtils
-import com.openedit.users.UserManager
-import com.openedit.users.User
-
-import org.apache.commons.net.ftp.FTPClient
-import org.apache.commons.net.ftp.FTPReply
-import org.apache.commons.io.IOUtils
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.io.Util;
-import org.openedit.entermedia.creator.ConversionUtil;
+import org.entermediadb.asset.Asset;
+import org.entermediadb.asset.MediaArchive;
+import org.entermediadb.asset.convert.ConversionUtil;
+import org.entermediadb.asset.publishing.BasePublisher;
+import org.entermediadb.asset.publishing.PublishResult;
+import org.entermediadb.asset.publishing.Publisher;
+import org.openedit.Data;
+import org.openedit.OpenEditException;
+import org.openedit.data.BaseData;
+import org.openedit.data.Searcher;
+import org.openedit.hittracker.SearchQuery;
+import org.openedit.page.Page;
+import org.openedit.users.User;
+import org.openedit.users.UserManager;
 import org.openedit.util.DateStorageUtil;
 
-public class fatwirepublisher extends basepublisher implements Publisher
+
+public class FatwirePublisher extends BasePublisher implements Publisher
 {
-        private static final Log log = LogFactory.getLog(fatwirepublisher.class);
+        private static final Log log = LogFactory.getLog(FatwirePublisher.class);
 
         /**
          * Package all relevant variables required by FatwireManager
@@ -74,7 +65,7 @@ public class fatwirepublisher extends basepublisher implements Publisher
                 String imagepath = fatwireData.get("defaultimagepath") == null ? DEFAULT_IMG_PATH : fatwireData.get("defaultimagepath");
                 String maxlength = fatwireData.get("maxexportlength") == null ? DEFAULT_MAX_EXPORT_LENGTH : fatwireData.get("maxexportlength");
                 String source = fatwireData.get("defaultsource") == null ? DEFAULT_SOURCE : fatwireData.get("defaultsource");
-                String spacechar = fatwireData.get("exportspacesubstitution") == null ? DEFAULT_SPACE_REPLACE : fatwireData.get("exportspacesubstitution");
+                String spacechar = fatfatwireManagerwireData.get("exportspacesubstitution") == null ? DEFAULT_SPACE_REPLACE : fatwireData.get("exportspacesubstitution");
 
                 int maxlen = Integer.parseInt(maxlength);
 
@@ -89,7 +80,7 @@ public class fatwirepublisher extends basepublisher implements Publisher
                 String regionid = inPublishRequest.get("regionid");
                 if (regionid == null){
                         Searcher fatwireregionsearch = mediaArchive.getSearcherManager().getSearcher(mediaArchive.getCatalogId(), "fatwireregion");
-                        Data defaultfr = fatwireregionsearch.searchByField("default", "true");
+                        Data defaultfr = (Data)fatwireregionsearch.searchByField("default", "true");
                         if (defaultfr!=null){
                                 regionid = defaultfr.getId();
                         } else {
@@ -98,17 +89,17 @@ public class fatwirepublisher extends basepublisher implements Publisher
                 }
                 inoutdata.setProperty("site",regionid);
                 //image path
-                if (imagepath.contains("\${") && imagepath.endsWith("}")){
-                        String prefix = imagepath.substring(0,imagepath.indexOf("\${")).replace("\${","").trim();
-                        String suffix = imagepath.substring(imagepath.indexOf("\${")).replace("\${","").replace("}","").trim();
+                if (imagepath.contains("${") && imagepath.endsWith("}")){
+                        String prefix = imagepath.substring(0,imagepath.indexOf("${")).replace("${","").trim();
+                        String suffix = imagepath.substring(imagepath.indexOf("${")).replace("${","").replace("}","").trim();
                         String substring = inPublishRequest.get(suffix);
-                        if (substring){
-                                imagepath = "${prefix}${substring}";
+                        if (substring != null){
+                                imagepath = prefix + substring;
                         } else {
                                 imagepath = prefix.trim();
                         }
-                        if (!imagepath.endsWith("/")){
-                                imagepath = "$imagepath/";
+                        if (!imagepatfatwireManagerh.endsWith("/")){
+                                imagepath = imagepath + "/";
                         }
                 }
                 inoutdata.setProperty("imagepath",imagepath);
@@ -140,7 +131,7 @@ public class fatwirepublisher extends basepublisher implements Publisher
                         return null;
                 }
                 Searcher presetsearch = mediaArchive.getSearcherManager().getSearcher(mediaArchive.getCatalogId(), "convertpreset");
-                Data presetdata = presetsearch.searchById(presetid);
+                Data presetdata = (Data)presetsearch.searchById(presetid);
                 String pattern = presetdata.get("fileexportformat");
                 String newexportname = reformat(exportname,pattern,spacechar,maxlen);
                 if (newexportname != exportname){
@@ -176,7 +167,7 @@ public class fatwirepublisher extends basepublisher implements Publisher
                 }
                 //this does the actual publishing
 //              FatwireManager fatwireManager = (FatwireManager) mediaArchive.getModuleManager().getBean( "fatwireManager");
-                Object fatwireManager = mediaArchive.getModuleManager().getBean( "fatwireManager");
+                FatwireManager fatwireManager = (FatwireManager)mediaArchive.getModuleManager().getBean( "fatwireManager");
                 fatwireManager.setMediaArchive(mediaArchive);
                 try
                 {
@@ -238,6 +229,10 @@ String fullexportname = sitestring + "/" + exportname;
                 log.info("ftpPublish ${servername} ${username} ${page} ${export}");
 
                 FTPClient ftp = new FTPClient();
+                OutputStream os = null;
+                
+                try
+                {
                 ftp.connect(servername,21);
                 ftp.enterLocalPassiveMode();
                 int reply = ftp.getReplyCode();
@@ -265,9 +260,6 @@ String fullexportname = sitestring + "/" + exportname;
                 long filelen = page.length();
                 ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
 
-                OutputStream os = null;
-                try
-                {
 log.info("### starting to export to  $export");
                         os  = ftp.storeFileStream(export);
 log.info("### got io stream");
@@ -276,6 +268,7 @@ log.info("### got io stream");
                 }
                 finally
                 {
+                	
                         try
                         {
                                 if (page.getInputStream()!=null)
@@ -302,12 +295,12 @@ log.info("### got io stream");
                                 try{
                                         ftp.disconnect();
                                 }catch (Exception e2){}
-                                throw e;
+                                throw new OpenEditException(e);
                         }
                 }
 
-                reply = ftp.getReplyCode();
-                replymsg = ftp.getReplyString().trim();
+                int reply = ftp.getReplyCode();
+                String replymsg = ftp.getReplyString().trim();
                 boolean ispositive = FTPReply.isPositiveCompletion(reply);
                 log.info("ftp client following file copy of ${export} reply="+reply+", message="+replymsg+", ispositive="+ispositive);
 
