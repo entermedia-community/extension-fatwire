@@ -30,6 +30,8 @@ public class FatwireUtil {
 	
 	public AssetBean buildAsset(MediaArchive inArchive, Asset inAsset, org.openedit.Data inData)
 	{
+		log.info("Input asset ID: \n"+inAsset.getId() + "\n");
+
 		String width = inData.get("width");
 		String id = inData.get("id");
 		String height =  inData.get("height");
@@ -46,6 +48,7 @@ public class FatwireUtil {
 		sb.append("Pub: ").append(site).append("/").append(type).append("/").append(subtype).append("\n");
 		sb.append("Path: ").append(imagepath).append(exportname).append("\n");
 		sb.append("Source: ").append(source).append("\n");
+		sb.append("Id: ").append(id).append("\n");
 		sb.append("Description: ").append(description);
 		
 		log.info("setting the following properties: \n"+sb.toString());
