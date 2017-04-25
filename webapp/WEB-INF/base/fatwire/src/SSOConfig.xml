@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<!-- Single Sign On provider -->
+	<bean id="ssoprovider" class="com.fatwire.wem.sso.cas.CASProvider">
+		<property name="config" ref="ssoconfig" />
+	</bean>
+	<!-- Single Sign On configuration: change ONLY the following property: casUrl 
+		- URL of the CAS installation -->
+	<bean id="ssoconfig" class="com.fatwire.wem.sso.cas.conf.CASConfig">
+		<!-- http://dev11g.app.www.law.com:8080/cs returns ERROR when running multiticket 
+			but http://dev11g.app.www.law.com:8080/cas connects properly -->
+		<!-- development cas server -->
+		<!-- <property name="casUrl" value="http://dev11g.app.www.law.com:8080/cas" 
+			/> -->
+		<!-- production cas server -->
+		<property name="casUrl" value="http://stage11g.app.www.law.com:8080/cas" />
+	</bean>
+</beans>
