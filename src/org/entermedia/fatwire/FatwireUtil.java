@@ -31,6 +31,7 @@ public class FatwireUtil {
 	public AssetBean buildAsset(MediaArchive inArchive, Asset inAsset, org.openedit.Data inData)
 	{
 		String width = inData.get("width");
+		String id = inData.get("id");
 		String height =  inData.get("height");
 		String site = inData.get("site");
 		String type = inData.get("type");
@@ -54,6 +55,7 @@ public class FatwireUtil {
 		fwasset.setDescription(description);
 		fwasset.setSubtype(subtype);
 		fwasset.getPublists().add(site);
+		fwasset.setId(id);
 		
 		
 		String path = new StringBuilder().append(imagepath).append(exportname).toString();
