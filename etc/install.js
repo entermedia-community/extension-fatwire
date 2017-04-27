@@ -23,9 +23,7 @@ var files = new FileUtils();
 files.deleteMatch (web + "/lib/extension-fatwire*.jar");
 
 files.deleteMatch (web + "/lib/cas-client-core-3.1.9.jar");
-files.deleteMatch (web + "/lib/jersey-client-1.1.4.1.jar");
-files.deleteMatch (web + "/lib/jersey-core-1.1.4.1.jar");
-files.deleteMatch (web + "/lib/jersey-json-1.1.4.1.jar");
+files.deleteMatch (web + "/lib/jersey-*.jar");
 files.deleteMatch (web + "/lib/jsr311-api-1.1.1.jar");
 files.deleteMatch (web + "/lib/rest-api-1.2.2.jar");
 files.deleteMatch (web + "/lib/rest-api-local-impl-1.2.2.jar");
@@ -39,9 +37,7 @@ files.deleteMatch (web + "/lib/spring-*.jar");
 
 files.copyFileByMatch( tmp + "/lib/extension-fatwire*.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/cas-client-core-3.1.9.jar", web + "/lib/");
-files.copyFileByMatch( tmp + "/lib/jersey-client-1.1.4.1.jar", web + "/lib/");
-files.copyFileByMatch( tmp + "/lib/jersey-core-1.1.4.1.jar", web + "/lib/");
-files.copyFileByMatch( tmp + "/lib/jersey-json-1.1.4.1.jar", web + "/lib/");
+files.copyFileByMatch( tmp + "/lib/jersey-*.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/jsr311-api-1.1.1.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/rest-api-1.2.2.jar", web + "/lib/");
 files.copyFileByMatch( tmp + "/lib/rest-api-local-impl-1.2.2.jar", web + "/lib/");

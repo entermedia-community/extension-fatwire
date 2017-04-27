@@ -13,6 +13,8 @@
 	<classpathentry kind="lib" path="lib/wem-sso-api-oam-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/wem-sso-cas-integration-rest-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/xwork-2.0.4.jar"/>
-	<classpathentry kind="lib" path="lib/jersey-bundle-1.19.1.jar"/>
+	<classpathentry kind="lib" path="lib/jersey-client-1.9.1.jar"/>
+	<classpathentry kind="lib" path="lib/jersey-core-1.9.1.jar"/>
+	<classpathentry kind="lib" path="lib/jersey-json-1.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
