@@ -2,6 +2,7 @@ package org.entermedia.fatwire;
 
 import java.awt.Dimension;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,7 @@ import java.util.StringTokenizer;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.Asset;
@@ -313,6 +315,12 @@ public class FatwireManager {
 		}
 		catch (UniformInterfaceException e)
 		{
+			InputStream in = e.getResponse().getEntityInputStream();
+			if( in != null)
+			{
+				String theString = IOUtils.toString(in, "utf-8");
+				log.error("Got back" + theString);
+			}
 			log.error("UniformInterfaceException caught while issuing put(), message=["+e.getMessage()+"]", e);
 			String errorMessage = getFatwireUtil().formatErrorMessage(getMediaArchive(),e.getMessage());
 			throw new IOException(errorMessage,e);
